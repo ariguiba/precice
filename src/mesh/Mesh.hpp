@@ -31,7 +31,7 @@ namespace mesh {
  * It provides functionality to conveniently create those objects.
  *
  * In addition to creating the topological information of a mesh, the Mesh class
- * can also be used to add data to the vertices of a mesh.
+ * can also be used to add data to the vertices of a mesh, such as function values or also gradient values.
  *
  * Usage example: precice::mesh::tests::MeshTest::testDemonstration()
  */
@@ -42,6 +42,7 @@ public:
   using TriangleContainer = std::deque<Triangle>;
   using DataContainer     = std::vector<PtrData>;
   using BoundingBoxMap    = std::map<int, BoundingBox>;
+  using GradientDataContainer = std::vector<PtrGradientData>;
 
   /// A mapping from rank to used (not necessarily owned) vertex IDs
   using VertexDistribution = std::map<Rank, std::vector<VertexID>>;
@@ -146,6 +147,30 @@ public:
   /// Returns the data with the matching name
   const PtrData &data(const std::string &dataName) const;
 
+  /// Changes start here
+
+  PtrGradientData &createGradientData(
+    const std::string &name, 
+    PtrData           &data);
+
+  /// Allows acces to all gradient data 
+  const GradientDataContainer &gradientData() const;
+
+  /// Returns whether Mesh has Gradient Data with the matchingID
+  bool hasGradientDataID(DataID dataID) const; 
+
+  /// Returns the gradient data with the matching ID
+  const PtrGradientData &gradientData(DataID dataID) const;
+
+  /// Returns whether Mesh has Gradient Data with the gradientDataName
+  bool hasGradientDataName(const std::string &gradientDataName) const;
+
+  /// Returns the gradient data with the matching name
+  const PtrGradientData &gradientData(const std::string &gradientDataName) const;
+
+  /// Changes end here
+
+
   /// Returns the name of the mesh, as set in the config file.
   const std::string &getName() const;
 
@@ -160,6 +185,9 @@ public:
 
   /// Allocates memory for the vertex data values.
   void allocateDataValues();
+
+  /// Allocates memory for the vertex gradient data values.
+  void allocateGradientDataValues();
 
   /// Computes the boundingBox for the vertices.
   void computeBoundingBox();
@@ -245,6 +273,9 @@ private:
 
   /// Data hold by the vertices of the mesh.
   DataContainer _data;
+
+  /// Gradient Data held by the vertices of the mesh.
+  GradientDataContainer _gradientData;
 
   /**
    * @brief Vertex distribution for the master, holding for each slave all vertex IDs it owns.

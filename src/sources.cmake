@@ -169,6 +169,8 @@ target_sources(precice
     src/mapping/Mapping.hpp
     src/mapping/NearestNeighborMapping.cpp
     src/mapping/NearestNeighborMapping.hpp
+    src/mapping/NearestNeighborGradientMapping.cpp
+    src/mapping/NearestNeighborGradientMapping.hpp
     src/mapping/NearestProjectionMapping.cpp
     src/mapping/NearestProjectionMapping.hpp
     src/mapping/PetRadialBasisFctMapping.hpp
@@ -194,6 +196,8 @@ target_sources(precice
     src/mesh/Edge.cpp
     src/mesh/Edge.hpp
     src/mesh/Filter.hpp
+    src/mesh/GradientData.cpp
+    src/mesh/GradientData.hpp
     src/mesh/Mesh.cpp
     src/mesh/Mesh.hpp
     src/mesh/RangeAccessor.hpp

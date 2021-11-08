@@ -689,6 +689,9 @@ public:
       int    valueIndex,
       double value);
 
+
+    ///TODO: Add writeGradientScalarData() method (as well as readGradient, etc ... )
+
   /**
    * @brief Reads vector data into a provided block.
    *
