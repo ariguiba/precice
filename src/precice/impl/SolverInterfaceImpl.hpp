@@ -246,6 +246,9 @@ public:
   /// @copydoc SolverInterface::isMeshConnectivityRequired()
   bool isMeshConnectivityRequired(int meshID) const;
 
+  /// Returns true, if gradient data is required for mapping
+  bool isGradientRequired(int meshID) const;
+
   /// Returns true, if the data with given name is used in the given mesh.
   bool hasData(const std::string &dataName, MeshID meshID) const;
 
@@ -389,6 +392,21 @@ public:
       int           fromDataID,
       int           valueIndex,
       const double *value);
+
+    /**
+   * @brief Write gradient data to the interface mesh
+   *
+   * The exact mapping and communication must be specified in XYZ.
+   *
+   * @param[in] fromDataID ID of the data to be written, e.g. 1 = forces
+   * @param[in] dataPosition Position (coordinate, e.g.) of data to be written
+   * @param[in] dataValue Value of the gradient data to be written
+   */ 
+   
+  void writeGradientData(
+      int           fromDataID,
+      int           valueIndex,
+      const double *value); 
 
   /**
    * @brief Writes scalar data values given as block.

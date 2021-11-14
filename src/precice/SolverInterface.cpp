@@ -109,6 +109,11 @@ bool SolverInterface::isMeshConnectivityRequired(int meshID) const
   return _impl->isMeshConnectivityRequired(meshID);
 }
 
+bool SolverInterface::isGradientRequired(int meshID) const
+{
+  return _impl->isGradientRequired(meshID);
+}
+
 bool SolverInterface::hasData(
     const std::string &dataName, int meshID) const
 {
@@ -278,6 +283,14 @@ void SolverInterface::readBlockVectorData(
     double *   values) const
 {
   _impl->readBlockVectorData(dataID, size, valueIndices, values);
+}
+
+void SolverInterface::writeGradientData(
+    int           dataID,
+    int           valueIndex,
+    const double *value)
+{
+  _impl->writeGradientData(dataID, valueIndex, value);
 }
 
 void SolverInterface::readVectorData(

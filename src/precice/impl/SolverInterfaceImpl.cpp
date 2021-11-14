@@ -630,6 +630,13 @@ bool SolverInterfaceImpl::isMeshConnectivityRequired(int meshID) const
   return context.meshRequirement == mapping::Mapping::MeshRequirement::FULL;
 }
 
+bool SolverInterfaceImpl::isGradientRequired(int meshID) const
+{
+  PRECICE_VALIDATE_MESH_ID(meshID);
+  MeshContext &context = _accessor->usedMeshContext(meshID);
+  return context.meshRequirement == mapping::Mapping::MeshRequirement::GRADIENT;
+}
+
 int SolverInterfaceImpl::getMeshVertexSize(
     MeshID meshID) const
 {
@@ -1168,6 +1175,50 @@ void SolverInterfaceImpl::writeScalarData(
                 data.getName(), valueIndex);
   values[valueIndex] = value;
 }
+
+
+/// TODO test this !! and fix log infos 
+void SolverInterfaceImpl::writeGradientData(
+    int           dataID,
+    int           valueIndex,
+    const double *value)
+{
+  PRECICE_TRACE(dataID, valueIndex);
+  PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().");
+  
+  // ADD GRADIENT DATA ? 
+  PRECICE_REQUIRE_DATA_WRITE(dataID);
+  // WHAT IS THIS ? 
+  //PRECICE_DEBUG("value = {}", Eigen::Map<const Eigen::MatrixXd>(value, _dimensions).format(utils::eigenio::debug()));
+
+  DataContext &context = _accessor->dataContext(dataID);
+  PRECICE_ASSERT(context.providedData() != nullptr);
+  mesh::Data &data = *context.providedData();
+  
+  //MAYBE CHANGE THIS
+  //PRECICE_CHECK(data.getDimensions() == _dimensions,
+  //              "You cannot call writeGradientData on the scalar data type \"{0}\"",
+  //              data.getName());
+                
+  // MUST CHANGE VALIDATE GRADIENT DATA 
+  PRECICE_VALIDATE_DATA(value, _dimensions);
+
+  auto &     gradientValues      = data.gradientValues();
+  const auto vertexCount = gradientValues.cols() / data.getDimensions();
+
+  // Better : find how to access the mesh of the current context
+  const auto meshDimensions = data.getMeshDimensions(); 
+
+  //PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
+  //              "Cannot write data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
+  //              data.getName(), valueIndex);
+  const int offset = valueIndex * _dimensions;
+  for (int dim = 0; dim < _dimensions; dim++) {
+    for (int meshDim = 0; dim < meshDimensions; meshDim++)
+    gradientValues(meshDim, offset + dim) = value[meshDim * meshDimensions + dim ];
+  }
+}
+
 
 void SolverInterfaceImpl::readBlockVectorData(
     int        dataID,

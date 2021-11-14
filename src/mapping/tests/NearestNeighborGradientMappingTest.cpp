@@ -6,7 +6,6 @@
 #include "mapping/NearestNeighborGradientMapping.hpp"
 #include "math/constants.hpp"
 #include "mesh/Data.hpp"
-#include "mesh/GradientData.hpp"
 #include "mesh/Mesh.hpp"
 #include "mesh/SharedPointer.hpp"
 #include "mesh/Utils.hpp"
@@ -29,8 +28,8 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
 
   // Create mesh to map from
   PtrMesh inMesh(new Mesh("InMesh", dimensions, testing::nextMeshID()));
-  PtrData inDataScalar   = inMesh->createData("InDataScalar", 1);
-  PtrData inDataVector   = inMesh->createData("InDataVector", 2);
+  PtrData inDataScalar   = inMesh->createDataWithGradient("InDataScalar", 1, dimensions);
+  PtrData inDataVector   = inMesh->createDataWithGradient("InDataVector", 2, dimensions);
   int     inDataScalarID = inDataScalar->getID();
   int     inDataVectorID = inDataVector->getID();
   Vertex &inVertex0      = inMesh->createVertex(Eigen::Vector2d::Constant(0.0));
@@ -44,11 +43,9 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   inValuesVector << 1.0, 2.0, 3.0, 4.0;
 
   // Create corresponding gradient data (all gradient values = const = 1)
-  PtrGradientData inGradDataScalar = inMesh->createGradientData("InGradDataScalar", inDataScalar);
-  PtrGradientData inGradDataVector = inMesh->createGradientData("InGradDataVector", inDataVector);
   inMesh->allocateGradientDataValues();
-  Eigen::MatrixXd &inGradValuesScalar = inGradDataScalar->values();
-  Eigen::MatrixXd &inGradValuesVector = inGradDataVector->values();
+  Eigen::MatrixXd &inGradValuesScalar = inDataScalar->gradientValues();
+  Eigen::MatrixXd &inGradValuesVector = inDataVector->gradientValues();
   inGradValuesScalar.setOnes();
   inGradValuesVector.setOnes();
 
@@ -111,30 +108,6 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   expected << 1.2, 2.2, 3.2, 4.2;
   BOOST_CHECK(equals(expected, outValuesVector));
 
-  // Map data with exchanged vertices, has to result in exchanged values.
-  inVertex0.setCoords(outVertex1.getCoords());
-  inVertex1.setCoords(outVertex0.getCoords());
-  mapping.computeMapping();
-  mapping.map(inDataScalarID, outDataScalarID);
-  BOOST_TEST(mapping.hasComputedMapping() == true);
-  BOOST_TEST(outValuesScalar(1) == inValuesScalar(0));
-  BOOST_TEST(outValuesScalar(0) == inValuesScalar(1));
-  mapping.map(inDataVectorID, outDataVectorID);
-  expected << 3.0, 4.0, 1.0, 2.0;
-  BOOST_CHECK(equals(expected, outValuesVector));
-
-
-  // Map data with coinciding output vertices, has to result in same values.
-  outVertex1.setCoords(outVertex0.getCoords());
-  mapping.computeMapping();
-  mapping.map(inDataScalarID, outDataScalarID);
-  BOOST_TEST(mapping.hasComputedMapping() == true);
-  BOOST_TEST(outValuesScalar(1) == inValuesScalar(1));
-  BOOST_TEST(outValuesScalar(0) == inValuesScalar(1));
-  mapping.map(inDataVectorID, outDataVectorID);
-  expected << 3.0, 4.0, 3.0, 4.0;
-  BOOST_CHECK(equals(expected, outValuesVector));
-
 }
 
 
@@ -145,7 +118,7 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
 
   // Create mesh to map from
   PtrMesh inMesh(new Mesh("InMesh", dimensions, testing::nextMeshID()));
-  PtrData inData    = inMesh->createData("InData", 1);
+  PtrData inData    = inMesh->createDataWithGradient("InData", 1, dimensions);
   int     inDataID  = inData->getID();
   Vertex &inVertex0 = inMesh->createVertex(Eigen::Vector2d::Constant(0.0));
   Vertex &inVertex1 = inMesh->createVertex(Eigen::Vector2d::Constant(1.0));
@@ -156,9 +129,8 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
   inValues << 1.0, 2.0;
   
   // Create corresponding gradient 
-  PtrGradientData inGradData = inMesh->createGradientData("InGradData", inData);
   inMesh->allocateGradientDataValues();
-  Eigen::MatrixXd &inGradValues = inGradData->values();
+  Eigen::MatrixXd &inGradValues = inData->gradientValues();
   inGradValues.setOnes();
 
 
@@ -194,20 +166,12 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
   BOOST_TEST(outValues(0) == inValues(0) + 0.2); 
   BOOST_TEST(outValues(1) == inValues(1) + 0.2);
   outValues = Eigen::VectorXd::Constant(outValues.size(), 0.0);
-  
-  
-  // Map data with exchanged vertices, has to result in exchanged values.
-  inVertex0.setCoords(outVertex1.getCoords());
-  inVertex1.setCoords(outVertex0.getCoords());
-  mapping.computeMapping();
-  mapping.map(inDataID, outDataID);
-  BOOST_TEST(mapping.hasComputedMapping() == true);
-  BOOST_TEST(outValues(1) == inValues(0));
-  BOOST_TEST(outValues(0) == inValues(1));
-  outValues = Eigen::VectorXd::Constant(outValues.size(), 0.0);
 
   
   // Map data with coinciding output vertices, has to result in double values with gradient optimization.
+  inVertex0.setCoords(Eigen::Vector2d::Constant(0.0));
+  inVertex1.setCoords(Eigen::Vector2d::Constant(1.0));
+  
   outVertex1.setCoords(Eigen::Vector2d::Constant(-1.0));
   mapping.computeMapping();
   mapping.map(inDataID, outDataID);
@@ -216,76 +180,6 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
   BOOST_TEST(outValues(1) == 0.0);
   
 }
-
-/*
-BOOST_AUTO_TEST_CASE(ScaledConsistentNonIncremental)
-{
-  PRECICE_TEST(1_rank);
-  int dimensions = 2;
-
-  // Create mesh to map from
-  PtrMesh inMesh(new Mesh("InMesh", dimensions, testing::nextMeshID()));
-  PtrData inData    = inMesh->createData("InData", 1);
-  int     inDataID  = inData->getID();
-  Vertex &inVertex0 = inMesh->createVertex(Eigen::Vector2d(0.0, 0.0));
-  Vertex &inVertex1 = inMesh->createVertex(Eigen::Vector2d{1.0, 0.0});
-  Vertex &inVertex2 = inMesh->createVertex(Eigen::Vector2d{3.0, 0.0});
-  Vertex &inVertex3 = inMesh->createVertex(Eigen::Vector2d{6.0, 0.0});
-
-  inMesh->createEdge(inVertex0, inVertex1);
-  inMesh->createEdge(inVertex1, inVertex2);
-  inMesh->createEdge(inVertex2, inVertex3);
-
-  inMesh->allocateDataValues();
-  Eigen::VectorXd &inValues = inData->values();
-  inValues(0)               = 1.0;
-  inValues(1)               = 2.0;
-  inValues(2)               = 3.0;
-  inValues(3)               = 4.0;
-
-  // Create mesh to map to
-  PtrMesh outMesh(new Mesh("OutMesh", dimensions, testing::nextMeshID()));
-  PtrData outData    = outMesh->createData("OutData", 1);
-  int     outDataID  = outData->getID();
-  Vertex &outVertex0 = outMesh->createVertex(Eigen::Vector2d(0.0, 0.0));
-  Vertex &outVertex1 = outMesh->createVertex(Eigen::Vector2d(0.8, 0.0));
-  Vertex &outVertex2 = outMesh->createVertex(Eigen::Vector2d(3.0, 0.0));
-  Vertex &outVertex3 = outMesh->createVertex(Eigen::Vector2d(6.2, 0.0));
-
-  outMesh->createEdge(outVertex0, outVertex1);
-  outMesh->createEdge(outVertex1, outVertex2);
-  outMesh->createEdge(outVertex2, outVertex3);
-
-  outMesh->allocateDataValues();
-
-  // Setup mapping with mapping coordinates and geometry used
-  precice::mapping::NearestNeighborGradientMapping mapping(mapping::Mapping::SCALEDCONSISTENT, dimensions);
-
-  mapping.setMeshes(inMesh, outMesh);
-  BOOST_TEST(mapping.hasComputedMapping() == false);
-
-  mapping.computeMapping();
-  mapping.map(inDataID, outDataID);
-
-  Eigen::VectorXd &outValues = outData->values();
-  BOOST_TEST(mapping.hasComputedMapping() == true);
-
-  auto inputIntegral  = mesh::integrate(inMesh, inData);
-  auto outputIntegral = mesh::integrate(outMesh, outData);
-
-  for (int dim = 0; dim < inputIntegral.size(); ++dim) {
-    BOOST_TEST(inputIntegral(dim) == outputIntegral(dim));
-  }
-
-  double scaleFactor = outValues(0) / inValues(0);
-  BOOST_TEST(scaleFactor != 1.0);
-
-  BOOST_TEST(inValues(0) * scaleFactor == outValues(0));
-  BOOST_TEST(inValues(1) * scaleFactor == outValues(1));
-  BOOST_TEST(inValues(2) * scaleFactor == outValues(2));
-  BOOST_TEST(inValues(3) * scaleFactor == outValues(3));
-}
-*/
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

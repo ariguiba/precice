@@ -196,8 +196,6 @@ target_sources(precice
     src/mesh/Edge.cpp
     src/mesh/Edge.hpp
     src/mesh/Filter.hpp
-    src/mesh/GradientData.cpp
-    src/mesh/GradientData.hpp
     src/mesh/Mesh.cpp
     src/mesh/Mesh.hpp
     src/mesh/RangeAccessor.hpp

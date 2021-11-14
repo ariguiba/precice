@@ -15,7 +15,6 @@
 #include "logging/LogMacros.hpp"
 #include "math/geometry.hpp"
 #include "mesh/Data.hpp"
-#include "mesh/GradientData.hpp"
 #include "precice/types.hpp"
 #include "query/Index.hpp"
 #include "utils/EigenHelperFunctions.hpp"
@@ -184,64 +183,25 @@ const PtrData &Mesh::data(const std::string &dataName) const
   return *iter;
 }
 
-///Changes start here 
-
-PtrGradientData &Mesh::createGradientData(
+PtrData &Mesh::createDataWithGradient(
     const std::string &name,
-    PtrData           &data) 
+    int               dimension,
+    int               meshDimensions) 
 {
-  //PRECICE_TRACE(name, data->getDimensions);
-  for (const PtrGradientData &gradientData : _gradientData) {
-    PRECICE_CHECK(gradientData->getName() != name,
-                  "Gradient Data \"{}\" cannot be created twice for mesh \"{}\". "
-                  "Please rename or remove one of the use-gradient-data tags with name \"{}\".",
+  PRECICE_TRACE(name, dimension);
+  for (const PtrData &data : _data) {
+    PRECICE_CHECK(data->getName() != name,
+                  "Data \"{}\" cannot be created twice for mesh \"{}\". "
+                  "Please rename or remove one of the use-data tags with name \"{}\".",
                   name, _name, name);
   }
-  int     id = data->getID(); //gradient and corresponding data must have same ID
-  
+  int     id = Data::getDataCount();
+
   //#rows = dimensions of current mesh #columns = dimensions of corresponding data set
-  PtrGradientData gradientData(new GradientData(name, id, _dimensions, data->getDimensions())); 
-  _gradientData.push_back(gradientData);
-  return _gradientData.back();
-}
-
-const Mesh::GradientDataContainer &Mesh::gradientData() const
-{
-  return _gradientData;
-}
-
-bool Mesh::hasGradientDataID(DataID dataID) const
-{
-  auto iter = std::find_if(_gradientData.begin(), _gradientData.end(), [dataID](const auto &dptr) {
-    return dptr->getID() == dataID;
-  });
-  return iter != _gradientData.end(); // if id was not found in mesh, iter == _gradientData.end()
-}
-
-const PtrGradientData &Mesh::gradientData(DataID dataID) const
-{
-  auto iter = std::find_if(_gradientData.begin(), _gradientData.end(), [dataID](const auto &dptr) {
-    return dptr->getID() == dataID;
-  });
-  PRECICE_ASSERT(iter != _gradientData.end(), "Gradient Data with id not found in mesh.", dataID, _name);
-  return *iter;
-}
-
-bool Mesh::hasGradientDataName(const std::string &gradientDataName) const
-{
-  auto iter = std::find_if(_gradientData.begin(), _gradientData.end(), [&gradientDataName](const auto &dptr) {
-    return dptr->getName() == gradientDataName;
-  });
-  return iter != _gradientData.end(); // if name was not found in mesh, iter == _gradientData.end()
-}
-
-const PtrGradientData &Mesh::gradientData(const std::string &gradientDataName) const
-{
-  auto iter = std::find_if(_gradientData.begin(), _gradientData.end(), [&gradientDataName](const auto &dptr) {
-    return dptr->getName() == gradientDataName;
-  });
-  PRECICE_ASSERT(iter != _gradientData.end(), "Gradient Data not found in mesh", gradientDataName, _name);
-  return *iter;
+  PtrData data(new Data(name, id, dimension, meshDimensions, true));
+  _data.push_back(data);
+  return _data.back();
+  
 }
 
 void Mesh::allocateGradientDataValues()
@@ -249,26 +209,24 @@ void Mesh::allocateGradientDataValues()
   PRECICE_TRACE(_vertices.size());
   const auto expectedCount = _vertices.size();
   using SizeType           = std::remove_cv<decltype(expectedCount)>::type;
-  for (PtrGradientData &gradientData : _gradientData) {
-    const SizeType expectedRowSize = gradientData->getMeshDimensions();
-    const SizeType expectedColumnSize = expectedCount * gradientData->getDimensions() ; 
-    const auto     actualRowSize   = static_cast<SizeType>(gradientData->values().rows());
-    const auto     actualColumnSize   = static_cast<SizeType>(gradientData->values().cols());
+  for (PtrData &data : _data) {
+    const SizeType expectedRowSize = data->getMeshDimensions();
+    const SizeType expectedColumnSize = expectedCount * data->getDimensions() ; 
+    const auto     actualRowSize   = static_cast<SizeType>(data->gradientValues().rows());
+    const auto     actualColumnSize   = static_cast<SizeType>(data->gradientValues().cols());
     // Shrink Buffer
     if (expectedRowSize < actualRowSize || expectedColumnSize < actualColumnSize ) {
-      gradientData->values().resize(expectedRowSize, expectedColumnSize);
+      data->gradientValues().resize(expectedRowSize, expectedColumnSize);
     }
     // Enlarge Buffer
     if (expectedRowSize > actualRowSize || expectedColumnSize > actualColumnSize) {
       const auto rowsLeftToAllocate = expectedRowSize - actualRowSize;
       const auto columnLeftToAllocate = expectedColumnSize - actualColumnSize;
-      utils::append(gradientData->values(), Eigen::MatrixXd(Eigen::MatrixXd::Zero(rowsLeftToAllocate, columnLeftToAllocate)));
+      utils::append(data->gradientValues(), Eigen::MatrixXd(Eigen::MatrixXd::Zero(rowsLeftToAllocate, columnLeftToAllocate)));
     }
-    PRECICE_DEBUG("Gradient Data {} now has {} values", gradientData->getName(), gradientData->values().size());
+    PRECICE_DEBUG("Gradient Data {} now has {} x {} values", data->getName(), data->gradientValues().rows(), data->gradientValues().cols());
   }
 }
-
-/// Changes end here 
 
 
 const std::string &Mesh::getName() const

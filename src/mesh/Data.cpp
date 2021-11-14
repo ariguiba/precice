@@ -10,6 +10,8 @@ namespace mesh {
 
 size_t Data::_dataCount = 0;
 
+size_t Data::_gradientDataCount = 0;
+
 Data::Data()
     : _name(""),
       _id(-1),
@@ -25,15 +27,39 @@ Data::Data(
     : _values(),
       _name(std::move(name)),
       _id(id),
-      _dimensions(dimensions)
+      _dimensions(dimensions),
+      _meshDimensions(-1),
+      _hasGradient(false)
 {
   PRECICE_ASSERT(dimensions > 0, dimensions);
   _dataCount++;
 }
 
+Data::Data(
+    std::string name,
+    DataID      id,
+    int         dimensions,
+    int         meshDimensions,
+    bool        hasGradient)
+    : _values(),
+      _name(std::move(name)),
+      _id(id),
+      _dimensions(dimensions),
+      _meshDimensions(meshDimensions),
+      _hasGradient(hasGradient)
+{
+  PRECICE_ASSERT(dimensions > 0, dimensions);
+  _dataCount++;
+
+  if (hasGradient)
+    _gradientDataCount++;
+}
+
 Data::~Data()
 {
   _dataCount--;
+  if (_hasGradient)
+    _gradientDataCount--;
 }
 
 Eigen::VectorXd &Data::values()
@@ -44,6 +70,16 @@ Eigen::VectorXd &Data::values()
 const Eigen::VectorXd &Data::values() const
 {
   return _values;
+}
+
+Eigen::MatrixXd &Data::gradientValues()
+{
+  return _gradientValues;
+}
+
+const Eigen::MatrixXd &Data::gradientValues() const
+{
+  return _gradientValues;
 }
 
 const std::string &Data::getName() const
@@ -63,9 +99,19 @@ void Data::toZero()
   std::fill(begin, end, 0.0);
 }
 
+bool Data::hasGradient() const
+{
+  return _hasGradient;
+}
+
 int Data::getDimensions() const
 {
   return _dimensions;
+}
+
+int Data::getMeshDimensions() const
+{
+  return _meshDimensions;
 }
 
 size_t Data::getDataCount()
@@ -76,6 +122,16 @@ size_t Data::getDataCount()
 void Data::resetDataCount()
 {
   _dataCount = 0;
+}
+
+size_t Data::getGradientDataCount()
+{
+  return _gradientDataCount;
+}
+
+void Data::resetGradientDataCount()
+{
+  _gradientDataCount = 0;
 }
 
 } // namespace mesh

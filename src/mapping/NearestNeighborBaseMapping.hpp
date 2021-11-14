@@ -9,7 +9,8 @@ namespace precice {
 namespace mapping {
 
 /// Mapping using nearest neighboring vertices and their local gradient values.
-class NearestNeighborGradientMapping : public Mapping {
+/// Base class for NN and NNG
+class NearestNeighborBaseMapping : public Mapping {
 public:
   /**
    * @brief Constructor.
@@ -17,10 +18,13 @@ public:
    * @param[in] constraint Specifies mapping to be consistent or conservative.
    * @param[in] dimensions Dimensionality of the meshes
    */
-  NearestNeighborGradientMapping(Constraint constraint, int dimensions);
+  NearestNeighborBaseMapping(Constraint constraint, int dimensions, bool hasGradient);
 
   /// Destructor, empty.
-  virtual ~NearestNeighborGradientMapping() {}
+  virtual ~NearestNeighborBaseMapping() {}
+
+  /// Checks if this is a gradient nearest neighbor mapping.
+  bool hasGradient();
 
   /// Computes the mapping coefficients from the in- and output mesh.
   virtual void computeMapping() override;
@@ -39,19 +43,35 @@ public:
   virtual void tagMeshFirstRound() override;
   virtual void tagMeshSecondRound() override;
 
-  double mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues);
+  /// Maps single values
+  //static Eigen::MatrixXd _dummy_matrix;
+  virtual double mapAt(int mapInputIndex, Eigen::VectorXd &inputValues, int vertex, Eigen::MatrixXd &gradientValues) = 0;
+  
+
+protected:
+
+  /// NearestNeighborMapping or NearestNeighborGradientMapping 
+  std::string MAPPING_NAME;
+
+  ///  = nn or = nng
+  std::string MAPPING_NAME_SHORT;
+
+  mutable logging::Logger _log{"mapping::" + MAPPING_NAME};
+
+  /// Compute the vector difference between the matched vector and the source vector (for gradient mapping)
+  std::vector<Eigen::VectorXd> _distancesMatched;
 
 private:
-  mutable logging::Logger _log{"mapping::NearestNeighborGradientMapping"};
-
   /// Flag to indicate whether computeMapping() has been called.
   bool _hasComputedMapping = false;
+
+  /// Flag if the mapping is a gradient mapping or not
+  bool _hasGradient;
 
   /// Computed output vertex indices to map data from input vertices to.
   std::vector<int> _vertexIndices;
 
-  /// Compute the vector difference between the matched vectors (for gradient optimization)
-  std::vector<Eigen::VectorXd> _distancesMatched;
+  
 };
 
 } // namespace mapping

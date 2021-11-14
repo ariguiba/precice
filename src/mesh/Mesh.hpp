@@ -42,7 +42,6 @@ public:
   using TriangleContainer = std::deque<Triangle>;
   using DataContainer     = std::vector<PtrData>;
   using BoundingBoxMap    = std::map<int, BoundingBox>;
-  using GradientDataContainer = std::vector<PtrGradientData>;
 
   /// A mapping from rank to used (not necessarily owned) vertex IDs
   using VertexDistribution = std::map<Rank, std::vector<VertexID>>;
@@ -129,8 +128,15 @@ public:
       Edge &edgeTwo,
       Edge &edgeThree);
 
+  /// Create only data for vertex 
   PtrData &createData(const std::string &name,
                       int                dimension);
+
+  /// Creates data for vertex with additional gradient data 
+  PtrData &createDataWithGradient(
+    const std::string &name,
+    int                dimension,
+    int                meshDimensions);
 
   /// Allows access to all data
   const DataContainer &data() const;
@@ -146,30 +152,6 @@ public:
 
   /// Returns the data with the matching name
   const PtrData &data(const std::string &dataName) const;
-
-  /// Changes start here
-
-  PtrGradientData &createGradientData(
-    const std::string &name, 
-    PtrData           &data);
-
-  /// Allows acces to all gradient data 
-  const GradientDataContainer &gradientData() const;
-
-  /// Returns whether Mesh has Gradient Data with the matchingID
-  bool hasGradientDataID(DataID dataID) const; 
-
-  /// Returns the gradient data with the matching ID
-  const PtrGradientData &gradientData(DataID dataID) const;
-
-  /// Returns whether Mesh has Gradient Data with the gradientDataName
-  bool hasGradientDataName(const std::string &gradientDataName) const;
-
-  /// Returns the gradient data with the matching name
-  const PtrGradientData &gradientData(const std::string &gradientDataName) const;
-
-  /// Changes end here
-
 
   /// Returns the name of the mesh, as set in the config file.
   const std::string &getName() const;
@@ -273,9 +255,6 @@ private:
 
   /// Data hold by the vertices of the mesh.
   DataContainer _data;
-
-  /// Gradient Data held by the vertices of the mesh.
-  GradientDataContainer _gradientData;
 
   /**
    * @brief Vertex distribution for the master, holding for each slave all vertex IDs it owns.

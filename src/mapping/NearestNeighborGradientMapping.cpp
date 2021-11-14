@@ -8,7 +8,6 @@
 #include <memory>
 #include "logging/LogMacros.hpp"
 #include "mesh/Data.hpp"
-#include "mesh/GradientData.hpp"
 #include "mesh/Mesh.hpp"
 #include "mesh/SharedPointer.hpp"
 #include "mesh/Vertex.hpp"
@@ -31,7 +30,7 @@ NearestNeighborGradientMapping::NearestNeighborGradientMapping(
     setInputRequirement(Mapping::MeshRequirement::FULL);
     setOutputRequirement(Mapping::MeshRequirement::FULL);
   } else {
-    setInputRequirement(Mapping::MeshRequirement::VERTEX);
+    setInputRequirement(Mapping::MeshRequirement::GRADIENT);
     setOutputRequirement(Mapping::MeshRequirement::VERTEX);
   }
 }
@@ -66,17 +65,8 @@ void NearestNeighborGradientMapping::computeMapping()
   const size_t verticesSize   = origins->vertices().size();
   const auto & sourceVertices = origins->vertices();
 
-  /// Check if searchSpace has gradient, else send Warning
-  /// TODO: "Nearest neighbor gradient mapping falls back to nearest neighbor mapping (when gradient not available)."
-
-  if (!sourceVertices.empty() && searchSpace->gradientData().empty()){
-      PRECICE_WARN("Mesh \"{}\" does not contain gradient data. ",
-                   searchSpace->getName());
-  }
-
-
-  _vertexIndices.resize(verticesSize); // Input vertices indices
-  _distancesMatched.resize(verticesSize); // For distances between source and matched vectors
+  _vertexIndices.resize(verticesSize); 
+  _distancesMatched.resize(verticesSize); 
   utils::statistics::DistanceAccumulator distanceStatistics; 
 
   for (size_t i = 0; i < verticesSize; ++i) {
@@ -85,6 +75,8 @@ void NearestNeighborGradientMapping::computeMapping()
     // Match the difference vector between the source vector and the matched one (relevant for gradient) 
     auto matchedVertexCoords = searchSpace.get()->vertices()[matchedVertex.index].getCoords();
     _distancesMatched[i] = matchedVertexCoords - sourceVertices[i].getCoords();
+
+    if (hasConstraint (CONSERVATIVE)) _distancesMatched[i] *= -1;
 
     _vertexIndices[i]  = matchedVertex.index;
     distanceStatistics(matchedVertex.distance);
@@ -134,8 +126,14 @@ void NearestNeighborGradientMapping::map(
 
   const Eigen::VectorXd &inputValues  = input()->data(inputDataID)->values();
   Eigen::VectorXd &      outputValues = output()->data(outputDataID)->values();
+
+  /// Check if input has gradient data, else send Error
+  if (!input()->vertices().empty() && !input()->data(inputDataID)->hasGradient()){
+      PRECICE_ERROR("Mesh \"{}\" does not contain gradient data. ",
+                   input()->getName());
+  }
   
-  const Eigen::MatrixXd &gradientValues = input()->gradientData(inputDataID)->values(); 
+  const Eigen::MatrixXd &gradientValues = input()->data(inputDataID)->gradientValues(); 
   
   //assign(outputValues) = 0.0;
 
@@ -159,8 +157,8 @@ void NearestNeighborGradientMapping::map(
         int mapOutputIndex = outputIndex + dim; 
         int mapInputIndex = (i * valueDimensions) + dim; 
 
-        // distances are calulated in the other direction (and must be multipled by -1)
-        outputValues(mapOutputIndex) += inputValues(mapInputIndex) - _distancesMatched[i].transpose() * gradientValues.col(mapInputIndex); 
+        outputValues(mapOutputIndex) += mapAt(mapInputIndex, i, inputValues, gradientValues);
+
       }
     }
   } else {
@@ -175,8 +173,7 @@ void NearestNeighborGradientMapping::map(
         int mapOutputIndex = (i * valueDimensions) + dim;
         int mapInputIndex =  inputIndex + dim;        
 
-        outputValues(mapOutputIndex) = inputValues(mapInputIndex) + _distancesMatched[i].transpose() * gradientValues.col(mapInputIndex); 
-
+        outputValues(mapOutputIndex) = mapAt(mapInputIndex, i, inputValues, gradientValues);
       }
     }
     if (hasConstraint(SCALEDCONSISTENT)) {
@@ -185,7 +182,10 @@ void NearestNeighborGradientMapping::map(
   }
 }
 
-// TODO: Does something change here ? 
+double NearestNeighborGradientMapping::mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues){
+  return inputValues(mapInputIndex) + _distancesMatched[vertex].transpose() * gradientValues.col(mapInputIndex); 
+}
+
 void NearestNeighborGradientMapping::tagMeshFirstRound()
 {
   PRECICE_TRACE();

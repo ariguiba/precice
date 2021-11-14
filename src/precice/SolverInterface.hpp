@@ -208,7 +208,7 @@ public:
    * Use this function to prevent unnecessary reads.
    */
   bool isReadDataAvailable() const;
-
+  
   /**
    * @brief Checks if new data has to be written before calling advance().
    *
@@ -360,6 +360,16 @@ public:
    * @returns whether connectivity is required
    */
   bool isMeshConnectivityRequired(int meshID) const;
+
+    /**
+     * @brief Checks if the given mesh requires additional gradient data.
+     *
+     * preCICE may require gradient information from the solver and
+     *
+     * @param[in] meshID the id of the mesh
+     * @returns whether gradient data is required
+    */
+    bool isGradientRequired(int meshID) const;
 
   /**
    * @brief Creates a mesh vertex
@@ -690,7 +700,31 @@ public:
       double value);
 
 
-    ///TODO: Add writeGradientScalarData() method (as well as readGradient, etc ... )
+    /**
+   * @brief Writes gradient data to a vertex
+   *
+   * This function writes a the corresponding gradient value of a specified vertex to a dataID.
+   * Values are provided as a block of continuous memory.
+   *
+   * The 2D-format of a gradient is (a_x, a_y) or (a_x, b_x, a_y, b_y) or (a_x, b_x, c_x, a_y, b_y, c_y) 
+   * The 3D-format of a gradient is (a_x, a_y, a_z) or
+   *                                (a_x, b_x, a_y, b_y, a_z, b_z) or
+   *                                (a_x, b_x, c_x, a_y, b_y, c_y, a_z, b_z, c_z)
+   *
+   * @param[in] dataID ID to write to.
+   * @param[in] valueIndex Index of the vertex.
+   * @param[in] value pointer to the matrix value.
+   *
+   * @pre count of available elements at value matches the configured dimension
+   * @pre initialize() has been called
+   * @pre vertex with dataID exists and contains data
+   *
+   * @see SolverInterface::setMeshVertex()
+   */
+  void writeGradientData(
+      int           dataID,
+      int           valueIndex,
+      const double *value);
 
   /**
    * @brief Reads vector data into a provided block.
