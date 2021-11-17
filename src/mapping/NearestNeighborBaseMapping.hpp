@@ -18,7 +18,8 @@ public:
    * @param[in] constraint Specifies mapping to be consistent or conservative.
    * @param[in] dimensions Dimensionality of the meshes
    */
-  NearestNeighborBaseMapping(Constraint constraint, int dimensions, bool hasGradient);
+  NearestNeighborBaseMapping(Constraint constraint, int dimensions, bool hasGradient, std::string mappingName,
+  std::string mappingNameShort);
 
   /// Destructor, empty.
   virtual ~NearestNeighborBaseMapping() {}
@@ -45,7 +46,7 @@ public:
 
   /// Maps single values
   //static Eigen::MatrixXd _dummy_matrix;
-  virtual double mapAt(int mapInputIndex, Eigen::VectorXd &inputValues, int vertex, Eigen::MatrixXd &gradientValues) = 0;
+  virtual double mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues) = 0;
   
 
 protected:

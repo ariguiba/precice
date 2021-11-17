@@ -3,13 +3,13 @@
 #include <string>
 #include <vector>
 #include "logging/Logger.hpp"
-#include "mapping/Mapping.hpp"
+#include "mapping/NearestNeighborBaseMapping.hpp"
 
 namespace precice {
 namespace mapping {
 
 /// Mapping using nearest neighboring vertices and their local gradient values.
-class NearestNeighborGradientMapping : public Mapping {
+class NearestNeighborGradientMapping : public NearestNeighborBaseMapping {
 public:
   /**
    * @brief Constructor.
@@ -21,38 +21,9 @@ public:
 
   /// Destructor, empty.
   virtual ~NearestNeighborGradientMapping() {}
-
-  /// Computes the mapping coefficients from the in- and output mesh.
-  virtual void computeMapping() override;
-
-  /// Returns true, if computeMapping() has been called.
-  virtual bool hasComputedMapping() const override;
-
-  /// Removes a computed mapping.
-  virtual void clear() override;
-
-  /// Maps input data to output data from input mesh to output mesh.
-  virtual void map(
-      int inputDataID,
-      int outputDataID) override;
-
-  virtual void tagMeshFirstRound() override;
-  virtual void tagMeshSecondRound() override;
-
-  double mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues);
-
-private:
-  mutable logging::Logger _log{"mapping::NearestNeighborGradientMapping"};
-
-  /// Flag to indicate whether computeMapping() has been called.
-  bool _hasComputedMapping = false;
-
-  /// Computed output vertex indices to map data from input vertices to.
-  std::vector<int> _vertexIndices;
-
-  /// Compute the vector difference between the matched vectors (for gradient optimization)
-  std::vector<Eigen::VectorXd> _distancesMatched;
-};
+  
+  virtual double mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues) override ;
+};  
 
 } // namespace mapping
 } // namespace precice

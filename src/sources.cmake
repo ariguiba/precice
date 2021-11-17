@@ -167,6 +167,8 @@ target_sources(precice
     src/m2n/config/M2NConfiguration.hpp
     src/mapping/Mapping.cpp
     src/mapping/Mapping.hpp
+    src/mapping/NearestNeighborBaseMapping.cpp
+    src/mapping/NearestNeighborBaseMapping.hpp
     src/mapping/NearestNeighborMapping.cpp
     src/mapping/NearestNeighborMapping.hpp
     src/mapping/NearestNeighborGradientMapping.cpp
