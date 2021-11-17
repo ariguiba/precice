@@ -204,29 +204,6 @@ PtrData &Mesh::createDataWithGradient(
   
 }
 
-void Mesh::allocateGradientDataValues()
-{
-  PRECICE_TRACE(_vertices.size());
-  const auto expectedCount = _vertices.size();
-  using SizeType           = std::remove_cv<decltype(expectedCount)>::type;
-  for (PtrData &data : _data) {
-    const SizeType expectedRowSize = data->getMeshDimensions();
-    const SizeType expectedColumnSize = expectedCount * data->getDimensions() ; 
-    const auto     actualRowSize   = static_cast<SizeType>(data->gradientValues().rows());
-    const auto     actualColumnSize   = static_cast<SizeType>(data->gradientValues().cols());
-    // Shrink Buffer
-    if (expectedRowSize < actualRowSize || expectedColumnSize < actualColumnSize ) {
-      data->gradientValues().resize(expectedRowSize, expectedColumnSize);
-    }
-    // Enlarge Buffer
-    if (expectedRowSize > actualRowSize || expectedColumnSize > actualColumnSize) {
-      const auto rowsLeftToAllocate = expectedRowSize - actualRowSize;
-      const auto columnLeftToAllocate = expectedColumnSize - actualColumnSize;
-      utils::append(data->gradientValues(), Eigen::MatrixXd(Eigen::MatrixXd::Zero(rowsLeftToAllocate, columnLeftToAllocate)));
-    }
-    PRECICE_DEBUG("Gradient Data {} now has {} x {} values", data->getName(), data->gradientValues().rows(), data->gradientValues().cols());
-  }
-}
 
 
 const std::string &Mesh::getName() const
@@ -255,6 +232,8 @@ void Mesh::allocateDataValues()
   const auto expectedCount = _vertices.size();
   using SizeType           = std::remove_cv<decltype(expectedCount)>::type;
   for (PtrData &data : _data) {
+
+    // Allocate data values
     const SizeType expectedSize = expectedCount * data->getDimensions();
     const auto     actualSize   = static_cast<SizeType>(data->values().size());
     // Shrink Buffer
@@ -267,8 +246,29 @@ void Mesh::allocateDataValues()
       utils::append(data->values(), Eigen::VectorXd(Eigen::VectorXd::Zero(leftToAllocate)));
     }
     PRECICE_DEBUG("Data {} now has {} values", data->getName(), data->values().size());
+
+    // Allocate gradient data values
+    if (data->hasGradient())
+    {
+      const SizeType expectedRowSize = data->getMeshDimensions();
+      const SizeType expectedColumnSize = expectedCount * data->getDimensions() ;
+      const auto     actualRowSize   = static_cast<SizeType>(data->gradientValues().rows());
+      const auto     actualColumnSize   = static_cast<SizeType>(data->gradientValues().cols());
+      // Shrink Buffer
+      if (expectedRowSize < actualRowSize || expectedColumnSize < actualColumnSize ) {
+        data->gradientValues().resize(expectedRowSize, expectedColumnSize);
+      }
+      // Enlarge Buffer
+      if (expectedRowSize > actualRowSize || expectedColumnSize > actualColumnSize) {
+        const auto rowsLeftToAllocate = expectedRowSize - actualRowSize;
+        const auto columnLeftToAllocate = expectedColumnSize - actualColumnSize;
+        utils::append(data->gradientValues(), Eigen::MatrixXd(Eigen::MatrixXd::Zero(rowsLeftToAllocate, columnLeftToAllocate)));
+      }
+      PRECICE_DEBUG("Gradient Data {} now has {} x {} values", data->getName(), data->gradientValues().rows(), data->gradientValues().cols());
+    }
   }
 }
+
 
 void Mesh::computeBoundingBox()
 {

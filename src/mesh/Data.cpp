@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "SharedPointer.hpp"
 #include "precice/types.hpp"
 #include "utils/assertion.hpp"
 
@@ -15,7 +16,9 @@ size_t Data::_gradientDataCount = 0;
 Data::Data()
     : _name(""),
       _id(-1),
-      _dimensions(0)
+      _dimensions(0),
+      _meshDimensions(-1),
+      _hasGradient(false)
 {
   PRECICE_ASSERT(false);
 }
@@ -97,6 +100,13 @@ void Data::toZero()
   auto begin = _values.data();
   auto end   = begin + _values.size();
   std::fill(begin, end, 0.0);
+
+  if(_hasGradient)
+  {
+    auto beginGradient = _gradientValues.data();
+    auto endGradient = beginGradient + _gradientValues.size();
+    std::fill(beginGradient, endGradient, 0.0);
+  }
 }
 
 bool Data::hasGradient() const

@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(NNG_B)
 {
   PRECICE_TEST(1_rank);
   std::string pathToTests = testing::getPathToSources() + "/precice/tests/";
-  std::string     filename = pathToTests + "meshrequirements-nn.xml";
+  std::string     filename = pathToTests + "meshrequirements-nng.xml";
   SolverInterface interface("B", filename, 0, 1);
   auto            meshID = interface.getMeshID("MeshB");
   BOOST_TEST(!interface.isGradientRequired(meshID));
@@ -61,9 +61,13 @@ BOOST_AUTO_TEST_CASE(Full)
     PRECICE_TEST("SolverOne"_on(1_rank), "SolverTwo"_on(1_rank));
     std::string pathToTests = testing::getPathToSources() + "/precice/tests/";
     std::string config = pathToTests + "meshrequirements-nng-full.xml";
-    
+    // NNG in both directions read AND write ?
+
+    // Where is this context coming from ???
     SolverInterface interface(context.name, config, context.rank, context.size);
 
+    // Problem : data is getting initialized WITHOUT gradient
+    // Where is the data context intialized ???
   if (context.isNamed("SolverOne")) {
     auto   meshid   = interface.getMeshID("MeshOne");
     double coords[] = {0.1, 1.2, 2.3};

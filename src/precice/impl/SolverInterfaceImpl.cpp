@@ -1177,45 +1177,41 @@ void SolverInterfaceImpl::writeScalarData(
 }
 
 
-/// TODO test this !! and fix log infos 
+/// TODO : fix this ! (Problem: data is intialized SOMEWHERE (can't find where) WITHOUT gradient
 void SolverInterfaceImpl::writeGradientData(
     int           dataID,
     int           valueIndex,
     const double *value)
 {
   PRECICE_TRACE(dataID, valueIndex);
-  PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().");
-  
-  // ADD GRADIENT DATA ? 
+  PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().")
   PRECICE_REQUIRE_DATA_WRITE(dataID);
-  // WHAT IS THIS ? 
-  //PRECICE_DEBUG("value = {}", Eigen::Map<const Eigen::MatrixXd>(value, _dimensions).format(utils::eigenio::debug()));
 
   DataContext &context = _accessor->dataContext(dataID);
   PRECICE_ASSERT(context.providedData() != nullptr);
   mesh::Data &data = *context.providedData();
-  
-  //MAYBE CHANGE THIS
-  //PRECICE_CHECK(data.getDimensions() == _dimensions,
-  //              "You cannot call writeGradientData on the scalar data type \"{0}\"",
-  //              data.getName());
-                
-  // MUST CHANGE VALIDATE GRADIENT DATA 
+
+  // MUST CHANGE VALIDATE GRADIENT DATA
   PRECICE_VALIDATE_DATA(value, _dimensions);
+
+  //PRECICE_CHECK(data.hasGradient(), "Data \"{}\" has no gradient values available!", data.getName())
 
   auto &     gradientValues      = data.gradientValues();
   const auto vertexCount = gradientValues.cols() / data.getDimensions();
 
   // Better : find how to access the mesh of the current context
-  const auto meshDimensions = data.getMeshDimensions(); 
+  const auto meshDimensions = data.getMeshDimensions();
+
+  // MUST CHECK : THIS THROWS AN ERROR
+  // PRECICE_DEBUG("value = {}", Eigen::Map<const Eigen::MatrixXd>(value, meshDimensions, _dimensions).format(utils::eigenio::debug()));
 
   //PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
-  //              "Cannot write data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
-  //              data.getName(), valueIndex);
+  //              "Cannot write gradient data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
+  //              data.getName(), valueIndex)
   const int offset = valueIndex * _dimensions;
   for (int dim = 0; dim < _dimensions; dim++) {
     for (int meshDim = 0; dim < meshDimensions; meshDim++)
-    gradientValues(meshDim, offset + dim) = value[meshDim * meshDimensions + dim ];
+    gradientValues(meshDim, offset + dim) = value[meshDim * meshDimensions + dim ]; //Change this to 2D Array
   }
 }
 

@@ -43,7 +43,6 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   inValuesVector << 1.0, 2.0, 3.0, 4.0;
 
   // Create corresponding gradient data (all gradient values = const = 1)
-  inMesh->allocateGradientDataValues();
   Eigen::MatrixXd &inGradValuesScalar = inDataScalar->gradientValues();
   Eigen::MatrixXd &inGradValuesVector = inDataVector->gradientValues();
   inGradValuesScalar.setOnes();
@@ -128,8 +127,7 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
   Eigen::VectorXd &inValues = inData->values();
   inValues << 1.0, 2.0;
   
-  // Create corresponding gradient 
-  inMesh->allocateGradientDataValues();
+  // Create corresponding gradient
   Eigen::MatrixXd &inGradValues = inData->gradientValues();
   inGradValues.setOnes();
 

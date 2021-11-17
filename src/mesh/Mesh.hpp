@@ -165,11 +165,8 @@ public:
   /// Returns true if the given edgeID is valid
   bool isValidEdgeID(EdgeID edgeID) const;
 
-  /// Allocates memory for the vertex data values.
+  /// Allocates memory for the vertex data values and corresponding gradient values.
   void allocateDataValues();
-
-  /// Allocates memory for the vertex gradient data values.
-  void allocateGradientDataValues();
 
   /// Computes the boundingBox for the vertices.
   void computeBoundingBox();
