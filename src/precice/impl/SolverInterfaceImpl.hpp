@@ -406,7 +406,9 @@ public:
   void writeGradientData(
       int           fromDataID,
       int           valueIndex,
-      const double *value); 
+      const double *valueX,
+      const double *valueY,
+      const double *valueZ);
 
   /**
    * @brief Writes scalar data values given as block.

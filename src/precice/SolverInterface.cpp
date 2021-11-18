@@ -288,9 +288,11 @@ void SolverInterface::readBlockVectorData(
 void SolverInterface::writeGradientData(
     int           dataID,
     int           valueIndex,
-    const double *value)
+    const double *valueX,
+    const double *valueY,
+    const double *valueZ)
 {
-  _impl->writeGradientData(dataID, valueIndex, value);
+  _impl->writeGradientData(dataID, valueIndex, valueX, valueY, valueZ);
 }
 
 void SolverInterface::readVectorData(

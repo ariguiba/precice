@@ -61,13 +61,9 @@ BOOST_AUTO_TEST_CASE(Full)
     PRECICE_TEST("SolverOne"_on(1_rank), "SolverTwo"_on(1_rank));
     std::string pathToTests = testing::getPathToSources() + "/precice/tests/";
     std::string config = pathToTests + "meshrequirements-nng-full.xml";
-    // NNG in both directions read AND write ?
 
-    // Where is this context coming from ???
     SolverInterface interface(context.name, config, context.rank, context.size);
 
-    // Problem : data is getting initialized WITHOUT gradient
-    // Where is the data context intialized ???
   if (context.isNamed("SolverOne")) {
     auto   meshid   = interface.getMeshID("MeshOne");
     double coords[] = {0.1, 1.2, 2.3};
@@ -75,9 +71,11 @@ BOOST_AUTO_TEST_CASE(Full)
 
     auto   dataid = interface.getDataID("DataOne", meshid);
     double data[] = {3.4, 4.5, 5.6};
-    double gradientData[] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double gradientDataX[] = {1.0, 1.0, 1.0};
+    double gradientDataY[] = {1.0, 1.0, 1.0};
+    double gradientDataZ[] = {1.0, 1.0, 1.0};
     interface.writeVectorData(dataid, vertexid, data);
-    interface.writeGradientData(dataid, vertexid, gradientData);
+    interface.writeGradientData(dataid, vertexid, gradientDataX, gradientDataY, gradientDataZ);
 
   } else {
     auto   meshid   = interface.getMeshID("MeshTwo");

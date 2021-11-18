@@ -724,7 +724,9 @@ public:
   void writeGradientData(
       int           dataID,
       int           valueIndex,
-      const double *value);
+      const double *valueX,
+      const double *valueY,
+      const double *valueZ);
 
   /**
    * @brief Reads vector data into a provided block.

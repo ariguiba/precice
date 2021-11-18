@@ -1176,13 +1176,16 @@ void SolverInterfaceImpl::writeScalarData(
   values[valueIndex] = value;
 }
 
-
-/// TODO : fix this ! (Problem: data is intialized SOMEWHERE (can't find where) WITHOUT gradient
+/// TODO: add mesh requirement check and remove gradient attribute
+/// TODO : Must test this and make it compatible with 2D
 void SolverInterfaceImpl::writeGradientData(
     int           dataID,
     int           valueIndex,
-    const double *value)
+    const double *valueX,
+    const double *valueY,
+    const double *valueZ)
 {
+
   PRECICE_TRACE(dataID, valueIndex);
   PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().")
   PRECICE_REQUIRE_DATA_WRITE(dataID);
@@ -1191,27 +1194,28 @@ void SolverInterfaceImpl::writeGradientData(
   PRECICE_ASSERT(context.providedData() != nullptr);
   mesh::Data &data = *context.providedData();
 
-  // MUST CHANGE VALIDATE GRADIENT DATA
-  PRECICE_VALIDATE_DATA(value, _dimensions);
+  PRECICE_VALIDATE_DATA(valueX, _dimensions);
+  PRECICE_VALIDATE_DATA(valueY, _dimensions);
+  PRECICE_VALIDATE_DATA(valueZ, _dimensions);
 
-  //PRECICE_CHECK(data.hasGradient(), "Data \"{}\" has no gradient values available!", data.getName())
+  PRECICE_CHECK(data.hasGradient(), "Data \"{}\" has no gradient values available!", data.getName())
 
   auto &     gradientValues      = data.gradientValues();
   const auto vertexCount = gradientValues.cols() / data.getDimensions();
 
-  // Better : find how to access the mesh of the current context
-  const auto meshDimensions = data.getMeshDimensions();
+  PRECICE_DEBUG("value X = {}", Eigen::Map<const Eigen::VectorXd>(valueX, _dimensions).format(utils::eigenio::debug()));
+  PRECICE_DEBUG("value Y = {}", Eigen::Map<const Eigen::VectorXd>(valueY, _dimensions).format(utils::eigenio::debug()));
+  PRECICE_DEBUG("value Z = {}", Eigen::Map<const Eigen::VectorXd>(valueZ, _dimensions).format(utils::eigenio::debug()));
 
-  // MUST CHECK : THIS THROWS AN ERROR
-  // PRECICE_DEBUG("value = {}", Eigen::Map<const Eigen::MatrixXd>(value, meshDimensions, _dimensions).format(utils::eigenio::debug()));
+  PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
+                "Cannot write gradient data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
+                data.getName(), valueIndex)
 
-  //PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
-  //              "Cannot write gradient data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
-  //              data.getName(), valueIndex)
   const int offset = valueIndex * _dimensions;
   for (int dim = 0; dim < _dimensions; dim++) {
-    for (int meshDim = 0; dim < meshDimensions; meshDim++)
-    gradientValues(meshDim, offset + dim) = value[meshDim * meshDimensions + dim ]; //Change this to 2D Array
+      gradientValues(0, offset + dim) = valueX[dim];
+      gradientValues(1, offset + dim) = valueY[dim];
+      gradientValues(2, offset + dim) = valueZ[dim];
   }
 }
 
