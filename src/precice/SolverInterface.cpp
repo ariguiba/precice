@@ -295,6 +295,16 @@ void SolverInterface::writeGradientData(
   _impl->writeGradientData(dataID, valueIndex, valueX, valueY, valueZ);
 }
 
+void SolverInterface::writeScalarGradientData(
+    int dataID,
+    int valueIndex,
+    const double valueX,
+    const double valueY,
+    const double valueZ)
+{
+  _impl->writeScalarGradientData(dataID, valueIndex, valueX, valueY, valueZ);
+}
+
 void SolverInterface::readVectorData(
     int     dataID,
     int     valueIndex,

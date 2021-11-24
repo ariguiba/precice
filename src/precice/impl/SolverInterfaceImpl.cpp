@@ -1177,7 +1177,6 @@ void SolverInterfaceImpl::writeScalarData(
 }
 
 /// TODO: add mesh requirement check and remove gradient attribute
-/// TODO : Must test this and make it compatible with 2D
 void SolverInterfaceImpl::writeGradientData(
     int           dataID,
     int           valueIndex,
@@ -1195,8 +1194,10 @@ void SolverInterfaceImpl::writeGradientData(
   mesh::Data &data = *context.providedData();
 
   PRECICE_VALIDATE_DATA(valueX, _dimensions);
-  PRECICE_VALIDATE_DATA(valueY, _dimensions);
-  PRECICE_VALIDATE_DATA(valueZ, _dimensions);
+  if (valueY != nullptr)
+    PRECICE_VALIDATE_DATA(valueY, _dimensions);
+  if (valueZ != nullptr)
+    PRECICE_VALIDATE_DATA(valueZ, _dimensions);
 
   PRECICE_CHECK(data.hasGradient(), "Data \"{}\" has no gradient values available!", data.getName())
 
@@ -1204,7 +1205,9 @@ void SolverInterfaceImpl::writeGradientData(
   const auto vertexCount = gradientValues.cols() / data.getDimensions();
 
   PRECICE_DEBUG("value X = {}", Eigen::Map<const Eigen::VectorXd>(valueX, _dimensions).format(utils::eigenio::debug()));
-  PRECICE_DEBUG("value Y = {}", Eigen::Map<const Eigen::VectorXd>(valueY, _dimensions).format(utils::eigenio::debug()));
+  if (valueY != nullptr)
+    PRECICE_DEBUG("value Y = {}", Eigen::Map<const Eigen::VectorXd>(valueY, _dimensions).format(utils::eigenio::debug()));
+  if (valueZ != nullptr)
   PRECICE_DEBUG("value Z = {}", Eigen::Map<const Eigen::VectorXd>(valueZ, _dimensions).format(utils::eigenio::debug()));
 
   PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
@@ -1214,9 +1217,46 @@ void SolverInterfaceImpl::writeGradientData(
   const int offset = valueIndex * _dimensions;
   for (int dim = 0; dim < _dimensions; dim++) {
       gradientValues(0, offset + dim) = valueX[dim];
-      gradientValues(1, offset + dim) = valueY[dim];
-      gradientValues(2, offset + dim) = valueZ[dim];
+      if (valueY != nullptr)
+        gradientValues(1, offset + dim) = valueY[dim];
+      if (valueZ != nullptr)
+        gradientValues(2, offset + dim) = valueZ[dim];
   }
+}
+
+void SolverInterfaceImpl::writeScalarGradientData(
+    int           dataID,
+    int           valueIndex,
+    const double valueX,
+    const double valueY,
+    const double valueZ)
+{
+
+  PRECICE_TRACE(dataID, valueIndex);
+  PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().")
+  PRECICE_REQUIRE_DATA_WRITE(dataID);
+
+  DataContext &context = _accessor->dataContext(dataID);
+  PRECICE_ASSERT(context.providedData() != nullptr);
+  mesh::Data &data = *context.providedData();
+
+  PRECICE_CHECK(data.hasGradient(), "Data \"{}\" has no gradient values available!", data.getName())
+
+  auto &     gradientValues      = data.gradientValues();
+  const auto vertexCount = gradientValues.cols() / data.getDimensions();
+
+  //TODO: Add debug
+
+  PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
+                "Cannot write gradient data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
+                data.getName(), valueIndex)
+
+  gradientValues(0, valueIndex) = valueX;
+  if (valueY != 0)
+    gradientValues(1, valueIndex) = valueY;
+  if (valueZ != 0)
+    gradientValues(2, valueIndex) = valueZ;
+
 }
 
 

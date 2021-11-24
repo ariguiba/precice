@@ -401,14 +401,29 @@ public:
    * @param[in] fromDataID ID of the data to be written, e.g. 1 = forces
    * @param[in] dataPosition Position (coordinate, e.g.) of data to be written
    * @param[in] dataValue Value of the gradient data to be written
-   */ 
-   
+   */
   void writeGradientData(
       int           fromDataID,
       int           valueIndex,
       const double *valueX,
-      const double *valueY,
-      const double *valueZ);
+      const double *valueY = nullptr,
+      const double *valueZ = nullptr);
+
+  /**
+   * @brief Write gradient data to the interface mesh
+   *
+   * The exact mapping and communication must be specified in XYZ.
+   *
+   * @param[in] fromDataID ID of the data to be written, e.g. 1 = forces
+   * @param[in] dataPosition Position (coordinate, e.g.) of data to be written
+   * @param[in] dataValue Value of the gradient data to be written
+   */
+  void writeScalarGradientData(
+      int           fromDataID,
+      int           valueIndex,
+      const double valueX,
+      const double valueY = 0,
+      const double valueZ = 0);
 
   /**
    * @brief Writes scalar data values given as block.

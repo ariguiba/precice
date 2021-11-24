@@ -725,8 +725,33 @@ public:
       int           dataID,
       int           valueIndex,
       const double *valueX,
-      const double *valueY,
-      const double *valueZ);
+      const double *valueY = nullptr,
+      const double *valueZ = nullptr);
+
+  /**
+   * @brief Writes gradient data to a vertex
+   *
+   * This function writes a the corresponding gradient value of a specified vertex to a dataID.
+   * Values are provided as a block of continuous memory.
+   *
+   * @param[in] dataID ID to write to.
+   * @param[in] valueIndex Index of the vertex.
+   * @param[in] valueX gradient value in dX.
+   * @param[in] valueY gradient value in dY.
+   * @param[in] valueZ gradient value in dZ.
+   *
+   * @pre count of available elements at value matches the configured dimension
+   * @pre initialize() has been called
+   * @pre vertex with dataID exists and contains data
+   *
+   * @see SolverInterface::setMeshVertex()
+   */
+  void writeScalarGradientData(
+      int           dataID,
+      int           valueIndex,
+      const double valueX,
+      const double valueY = 0,
+      const double valueZ = 0);
 
   /**
    * @brief Reads vector data into a provided block.
