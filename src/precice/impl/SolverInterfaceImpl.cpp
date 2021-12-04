@@ -1635,7 +1635,11 @@ void SolverInterfaceImpl::computePartitions()
     if (not meshContext->provideMesh) { // received mesh can only compute their bounding boxes here
       meshContext->mesh->computeBoundingBox();
     }
+
+    //This allocates gradient values here too if available
+    // TODO : Maybe separate the two allocations (for efficiency)
     meshContext->mesh->allocateDataValues();
+
   }
 }
 
