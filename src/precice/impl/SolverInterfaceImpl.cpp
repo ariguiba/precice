@@ -1041,7 +1041,7 @@ void SolverInterfaceImpl::mapReadDataTo(
       PRECICE_DEBUG("Map data \"{}\" to mesh \"{}\"", context.getDataName(), context.getMeshName());
       PRECICE_ASSERT(mappingContext.mapping == context.mappingContext().mapping);
       mappingContext.mapping->map(context.getFromDataID(), context.getToDataID());
-      PRECICE_DEBUG("Mapped values = {}", utils::previewRange(3, context.toData()->values())); // @todo might be better to move this debug message into Mapping::map and remove getter DataContext::toData()
+      //PRECICE_DEBUG("Mapped values = {}", utils::previewRange(3, context.toData()->values())); // @todo might be better to move this debug message into Mapping::map and remove getter DataContext::toData()
     }
     mappingContext.hasMappedData = true;
   }
@@ -1245,7 +1245,22 @@ void SolverInterfaceImpl::writeScalarGradientData(
   auto &     gradientValues      = data.gradientValues();
   const auto vertexCount = gradientValues.cols() / data.getDimensions();
 
-  //TODO: Add debug
+
+  PRECICE_CHECK(valueIndex >= -1,
+                "Invalid value index ({}) when writing gradient scalar data. Value index must be >= 0. "
+                "Please check the value index for {}",
+                valueIndex, data.getName());
+  PRECICE_CHECK(data.getDimensions() == 1,
+                "You cannot call writeGradientScalarData on the vector data type \"{0}\". "
+                "Use writeVectorGradientData or change the data type for \"{0}\" to scalar.",
+                data.getName());
+
+
+  PRECICE_DEBUG("value X = {}", valueX);
+  if (valueY != 0)
+    PRECICE_DEBUG("value Y = {}", valueY);
+  if (valueZ != 0)
+    PRECICE_DEBUG("value Z = {}", valueZ);
 
   PRECICE_CHECK(0 <= valueIndex && valueIndex < vertexCount,
                 "Cannot write gradient data \"{}\" to invalid Vertex ID ({}). Please make sure you only use the results from calls to setMeshVertex/Vertices().",
@@ -1256,6 +1271,8 @@ void SolverInterfaceImpl::writeScalarGradientData(
     gradientValues(1, valueIndex) = valueY;
   if (valueZ != 0)
     gradientValues(2, valueIndex) = valueZ;
+
+  PRECICE_DEBUG("Written Gradient Values = {}, {}, {}", valueX, valueY,valueZ);
 
 }
 
@@ -1681,7 +1698,7 @@ void SolverInterfaceImpl::mapData(const utils::ptr_vector<DataContext> &contexts
         context.resetToData();
         PRECICE_DEBUG("Map from dataID {} to dataID: {}", inDataID, outDataID);
         context.mappingContext().mapping->map(inDataID, outDataID);
-        PRECICE_DEBUG("Mapped values = {}", utils::previewRange(3, context.toData()->values())); // @todo might be better to move this debug message into Mapping::map and remove getter DataContext::toData()
+        //PRECICE_DEBUG("Mapped values = {}", utils::previewRange(3, context.toData()->values())); // @todo might be better to move this debug message into Mapping::map and remove getter DataContext::toData()
       }
     }
   }

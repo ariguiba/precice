@@ -16,6 +16,16 @@
 #include "utils/Event.hpp"
 #include "utils/Statistics.hpp"
 #include "utils/assertion.hpp"
+#include "utils/EigenHelperFunctions.hpp"
+#include "utils/EigenIO.hpp"
+#include "utils/EventUtils.hpp"
+#include "utils/Helpers.hpp"
+#include "utils/MasterSlave.hpp"
+#include "utils/Parallel.hpp"
+#include "utils/Petsc.hpp"
+#include "utils/PointerVector.hpp"
+#include "utils/algorithm.hpp"
+
 
 namespace precice {
 extern bool syncMode;
@@ -196,6 +206,8 @@ void NearestNeighborBaseMapping::map(
     if (hasConstraint(SCALEDCONSISTENT)) {
       scaleConsistentMapping(inputDataID, outputDataID);
     }
+
+    PRECICE_DEBUG("Mapped values (w/o gradient) = {}", utils::previewRange(3, outputValues));
   }
 }
 
