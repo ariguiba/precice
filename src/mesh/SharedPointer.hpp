@@ -10,7 +10,6 @@ class Group;
 class Mesh;
 class DataConfiguration;
 class MeshConfiguration;
-class GradientData;
 
 using PtrData              = std::shared_ptr<Data>;
 using PtrGroup             = std::shared_ptr<Group>;

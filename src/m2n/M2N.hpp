@@ -147,9 +147,13 @@ public:
   void createDistributedCommunication(const mesh::PtrMesh &mesh);
 
   /// Sends an array of double values from all slaves (different for each slave).
+  /// The values sent can be gradient data
+  /// Gradient dimension : 0: dx-values, 1: dy-values, 2:dz-values
   void send(precice::span<double const> itemsToSend,
             int                         meshID,
-            int                         valueDimension);
+            int                         valueDimension,
+            bool                        withGradient = false,
+            int                         gradientDimension = -1);
 
   /**
    * @brief The master sends a bool to the other master, for performance reasons, we
@@ -173,9 +177,13 @@ public:
   void broadcastSend(int &itemToSend, mesh::Mesh &mesh);
 
   /// All slaves receive an array of doubles (different for each slave).
+  /// The values received can be gradient data
+  /// Gradient dimension : 0: dx-values, 1: dy-values, 2:dz-values
   void receive(precice::span<double> itemsToReceive,
                int                   meshID,
-               int                   valueDimension);
+               int                   valueDimension,
+               bool                  withGradient = false,
+               int                   gradientDimension = -1);
 
   /// All slaves receive a bool (the same for each slave).
   void receive(bool &itemToReceive);

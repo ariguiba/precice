@@ -101,6 +101,9 @@ BOOST_AUTO_TEST_CASE(NNG_Unidirectional_Serial)
     cplInterface.writeScalarData(dataID, 0, valueA);
     cplInterface.writeScalarGradientData(dataID, 0, 1.0, 1.0, 1.0);
 
+
+    //Maybe we need an initializeData here !!
+
     // Participant must make move after writing
     maxDt = cplInterface.advance(maxDt);
 
@@ -421,6 +424,8 @@ BOOST_AUTO_TEST_CASE(NNG_Bidirectional_Parallel_Explicit_Scalar)
   }
 }
 
+// No inintialize
+// Write: NN, Read: NNG
 BOOST_AUTO_TEST_CASE(NNG_Bidirectional_Read)
 {
 
@@ -440,16 +445,20 @@ BOOST_AUTO_TEST_CASE(NNG_Bidirectional_Read)
     double valueDataB = 0.0;
     cplInterface.initializeData();
     cplInterface.readScalarData(dataBID, 0, valueDataB);
-    BOOST_TEST(1.0 == valueDataB);
+    BOOST_TEST(valueDataB == 1.3);
 
     while (cplInterface.isCouplingOngoing()) {
-      Vector3d valueDataA(1.0, 1.0, 1.0);
-      cplInterface.writeVectorData(dataAID, 0, valueDataA.data());
-      //Add gradient data
+
+      cplInterface.writeScalarData(dataAID, 0, 2.0);
+      cplInterface.writeScalarGradientData(dataAID, 0, 1.0, 1.0, 1.0);
+
       maxDt = cplInterface.advance(maxDt);
 
       cplInterface.readScalarData(dataBID, 0, valueDataB);
-      BOOST_TEST(1.5 == valueDataB);
+      BOOST_TEST(valueDataB == 1.8);
+
+      cplInterface.writeScalarData(dataAID, 0, 2.5);
+      cplInterface.writeScalarGradientData(dataAID, 0, 1.0, 1.0, 1.0);
     }
     cplInterface.finalize();
 
@@ -463,25 +472,24 @@ BOOST_AUTO_TEST_CASE(NNG_Bidirectional_Read)
     int    dataAID = cplInterface.getDataID("DataOne", meshTwoID);
     int    dataBID = cplInterface.getDataID("DataTwo", meshTwoID);
 
-    double valueDataB = 1.0;
-    cplInterface.writeScalarData(dataBID, 0, valueDataB);
-
+    cplInterface.writeScalarData(dataBID, 0, 1.0);
+    cplInterface.writeScalarGradientData(dataBID, 0, 1.0, 1.0, 1.0);
 
     //tell preCICE that data has been written and call initializeData
     cplInterface.markActionFulfilled(precice::constants::actionWriteInitialData());
     cplInterface.initializeData();
 
-    Vector3d valueDataA;
-    cplInterface.readVectorData(dataAID, 0, valueDataA.data());
-    Vector3d expected(1.0, 1.0, 1.0);
-    BOOST_TEST(valueDataA == expected);
+    double valueDataA;
+    cplInterface.readScalarData(dataAID, 0, valueDataA);
+    BOOST_TEST(valueDataA == 2.3);
 
     while (cplInterface.isCouplingOngoing()) {
       cplInterface.writeScalarData(dataBID, 0, 1.5);
+      cplInterface.writeScalarGradientData(dataBID, 0, 1.0, 1.0, 1.0);
 
       maxDt = cplInterface.advance(maxDt);
-      cplInterface.readVectorData(dataAID, 0, valueDataA.data());
-      BOOST_TEST(valueDataA == expected);
+      cplInterface.readScalarData(dataAID, 0, valueDataA);
+      BOOST_TEST(valueDataA == 2.8);
     }
     cplInterface.finalize();
   }

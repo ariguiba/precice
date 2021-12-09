@@ -90,10 +90,24 @@ void BaseCouplingScheme::sendData(const m2n::PtrM2N &m2n, const DataMap &sendDat
     // Data is actually only send if size>0, which is checked in the derived classes implementaiton
     m2n->send(pair.second->values(), pair.second->getMeshID(), pair.second->getDimensions());
 
+    if (pair.second->hasGradient())
+    {
+      Eigen::MatrixXd gradVals = pair.second->gradientValues();
+
+      m2n->send(gradVals.row(0), pair.second->getMeshID(), pair.second->getDimensions(), true, 0);
+
+      if (gradVals.rows() >= 2)
+        m2n->send(gradVals.row(1), pair.second->getMeshID(), pair.second->getDimensions(), true, 1);
+
+      if (gradVals.rows() >= 3)
+      m2n->send(gradVals.row(2), pair.second->getMeshID(), pair.second->getDimensions(), true, 2);
+    }
+
     sentDataIDs.push_back(pair.first);
   }
   PRECICE_DEBUG("Number of sent data sets = {}", sentDataIDs.size());
 }
+
 
 void BaseCouplingScheme::receiveData(const m2n::PtrM2N &m2n, const DataMap &receiveData)
 {
@@ -104,6 +118,25 @@ void BaseCouplingScheme::receiveData(const m2n::PtrM2N &m2n, const DataMap &rece
   for (const DataMap::value_type &pair : receiveData) {
     // Data is only received on ranks with size>0, which is checked in the derived class implementation
     m2n->receive(pair.second->values(), pair.second->getMeshID(), pair.second->getDimensions());
+
+    if (pair.second->hasGradient())
+    {
+      Eigen::VectorXd gradVals0 = pair.second->gradientValues().row(0);
+      m2n->receive(gradVals0, pair.second->getMeshID(), pair.second->getDimensions(), true, 0);
+
+      if (pair.second->gradientValues().rows() > 1)
+      {
+        Eigen::VectorXd gradVals1 = pair.second->gradientValues().row(1);
+        m2n->receive(gradVals1, pair.second->getMeshID(), pair.second->getDimensions(), true, 1);
+      }
+
+      if (pair.second->gradientValues().rows() > 2)
+      {
+        Eigen::VectorXd gradVals2 = pair.second->gradientValues().row(2);
+        m2n->receive(gradVals2, pair.second->getMeshID(), pair.second->getDimensions(), true, 2);
+      }
+
+    }
 
     receivedDataIDs.push_back(pair.first);
   }
@@ -246,6 +279,7 @@ void BaseCouplingScheme::advance()
   }
 }
 
+//TODO: Maybe add gradient here
 void BaseCouplingScheme::storeDataInWaveforms()
 {
   PRECICE_TRACE(_timeWindows);
