@@ -5,16 +5,10 @@
 #include <Eigen/Core>
 #include <boost/container/flat_set.hpp>
 #include <functional>
-#include <memory>
 #include "logging/LogMacros.hpp"
-#include "mesh/Data.hpp"
-#include "mesh/Mesh.hpp"
-#include "mesh/SharedPointer.hpp"
-#include "mesh/Vertex.hpp"
-#include "query/Index.hpp"
 #include "utils/Event.hpp"
-#include "utils/Statistics.hpp"
 #include "utils/assertion.hpp"
+#include "utils/EigenHelperFunctions.hpp"
 
 namespace precice {
 extern bool syncMode;
@@ -35,10 +29,79 @@ NearestNeighborGradientMapping::NearestNeighborGradientMapping(
   }
 }
 
-double NearestNeighborGradientMapping::mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues) {
+void NearestNeighborGradientMapping::map(
+    int inputDataID,
+    int outputDataID)
+{
+  PRECICE_TRACE(inputDataID, outputDataID);
 
-  return inputValues(mapInputIndex) + _distancesMatched[vertex].transpose() * gradientValues.col(mapInputIndex); 
-  
+  precice::utils::Event e("map." + MAPPING_NAME_SHORT + ".mapData.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
+
+  int valueDimensions = input()->data(inputDataID)->getDimensions(); // Data dimensions (bei scalar = 1, bei vectors > 1)
+
+  const Eigen::VectorXd &inputValues  = input()->data(inputDataID)->values();
+  Eigen::VectorXd &      outputValues = output()->data(outputDataID)->values();
+
+  // If it's NearestNeighborMapping check if gradient data is available
+
+  if (hasGradient()){
+    /// Check if input has gradient data, else send Error
+    if (!input()->vertices().empty() && !input()->data(inputDataID)->hasGradient()){
+      PRECICE_ERROR("Mesh \"{}\" does not contain gradient data. ",
+                    input()->getName());
+    }
+  }
+
+  const Eigen::MatrixXd &gradientValues = input()->data(inputDataID)->gradientValues();
+
+
+  //assign(outputValues) = 0.0;
+
+  PRECICE_ASSERT(valueDimensions == output()->data(outputDataID)->getDimensions(),
+                 valueDimensions, output()->data(outputDataID)->getDimensions());
+  PRECICE_ASSERT(inputValues.size() / valueDimensions == (int) input()->vertices().size(),
+                 inputValues.size(), valueDimensions, input()->vertices().size());
+  PRECICE_ASSERT(outputValues.size() / valueDimensions == (int) output()->vertices().size(),
+                 outputValues.size(), valueDimensions, output()->vertices().size());
+
+
+  if (hasConstraint(CONSERVATIVE)) {
+    PRECICE_DEBUG("Map conservative");
+    size_t const inSize = input()->vertices().size();
+
+    for (size_t i = 0; i < inSize; i++) {
+      int const outputIndex = _vertexIndices[i] * valueDimensions;
+
+      for (int dim = 0; dim < valueDimensions; dim++) {
+
+        int mapOutputIndex = outputIndex + dim;
+        int mapInputIndex = (i * valueDimensions) + dim;
+
+        outputValues(mapOutputIndex) += inputValues(mapInputIndex) + _distancesMatched[i].transpose() * gradientValues.col(mapInputIndex);
+
+      }
+    }
+  } else {
+    PRECICE_DEBUG((hasConstraint(CONSISTENT) ? "Map consistent" : "Map scaled-consistent"));
+    size_t const outSize = output()->vertices().size();
+
+    for (size_t i = 0; i < outSize; i++) {
+      int inputIndex = _vertexIndices[i] * valueDimensions;
+
+      for (int dim = 0; dim < valueDimensions; dim++) {
+
+        int mapOutputIndex = (i * valueDimensions) + dim;
+        int mapInputIndex =  inputIndex + dim;
+
+        outputValues(mapOutputIndex) = inputValues(mapInputIndex) + _distancesMatched[i].transpose() * gradientValues.col(mapInputIndex);
+      }
+    }
+    if (hasConstraint(SCALEDCONSISTENT)) {
+      scaleConsistentMapping(inputDataID, outputDataID);
+    }
+
+    PRECICE_DEBUG("Mapped values (with gradient) = {}", utils::previewRange(3, outputValues));
+  }
 }
 
 } // namespace mapping

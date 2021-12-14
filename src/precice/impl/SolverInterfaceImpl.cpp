@@ -1174,10 +1174,11 @@ void SolverInterfaceImpl::writeScalarData(
                 "Please make sure you only use the results from calls to setMeshVertex/Vertices().",
                 data.getName(), valueIndex);
   values[valueIndex] = value;
+
+  PRECICE_DEBUG("Written Scalar Value = {}", value);
 }
 
-/// TODO: add mesh requirement check and remove gradient attribute
-void SolverInterfaceImpl::writeGradientData(
+void SolverInterfaceImpl::writeVectorGradientData(
     int           dataID,
     int           valueIndex,
     const double *valueX,
@@ -1186,7 +1187,7 @@ void SolverInterfaceImpl::writeGradientData(
 {
 
   PRECICE_TRACE(dataID, valueIndex);
-  PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().")
+  PRECICE_CHECK(_state != State::Finalized, "writeVectorGradientData(...) cannot be called before finalize().")
   PRECICE_REQUIRE_DATA_WRITE(dataID);
 
   DataContext &context = _accessor->dataContext(dataID);
@@ -1233,7 +1234,7 @@ void SolverInterfaceImpl::writeScalarGradientData(
 {
 
   PRECICE_TRACE(dataID, valueIndex);
-  PRECICE_CHECK(_state != State::Finalized, "writeGradientData(...) cannot be called before finalize().")
+  PRECICE_CHECK(_state != State::Finalized, "writeVectorGradientData(...) cannot be called before finalize().")
   PRECICE_REQUIRE_DATA_WRITE(dataID);
 
   DataContext &context = _accessor->dataContext(dataID);
@@ -1654,7 +1655,6 @@ void SolverInterfaceImpl::computePartitions()
     }
 
     //This allocates gradient values here too if available
-    // TODO : Maybe separate the two allocations (for efficiency)
     meshContext->mesh->allocateDataValues();
 
   }
@@ -1698,7 +1698,6 @@ void SolverInterfaceImpl::mapData(const utils::ptr_vector<DataContext> &contexts
         context.resetToData();
         PRECICE_DEBUG("Map from dataID {} to dataID: {}", inDataID, outDataID);
         context.mappingContext().mapping->map(inDataID, outDataID);
-        //PRECICE_DEBUG("Mapped values = {}", utils::previewRange(3, context.toData()->values())); // @todo might be better to move this debug message into Mapping::map and remove getter DataContext::toData()
       }
     }
   }

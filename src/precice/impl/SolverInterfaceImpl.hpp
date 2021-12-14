@@ -398,11 +398,11 @@ public:
    *
    * The exact mapping and communication must be specified in XYZ.
    *
-   * @param[in] fromDataID ID of the data to be written, e.g. 1 = forces
+   * @param[in] dataID ID of the data to be written, e.g. 1 = forces
    * @param[in] dataPosition Position (coordinate, e.g.) of data to be written
    * @param[in] dataValue Value of the gradient data to be written
    */
-  void writeGradientData(
+  void writeVectorGradientData(
       int           fromDataID,
       int           valueIndex,
       const double *valueX,

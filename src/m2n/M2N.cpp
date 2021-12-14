@@ -210,8 +210,7 @@ void M2N::send(
     precice::span<double const> itemsToSend,
     int                         meshID,
     int                         valueDimension,
-    bool                        withGradient,
-    int                         gradientDimension)
+    bool                        withGradient)
 {
   if (not _useOnlyMasterCom) {
     PRECICE_ASSERT(_areSlavesConnected);
@@ -226,7 +225,7 @@ void M2N::send(
     }
 
     if (withGradient)
-      Event e("m2n.sendGradientData.dim:" + std::to_string(gradientDimension), precice::syncMode);
+      Event e("m2n.sendGradientData" , precice::syncMode);
     else
       Event e("m2n.sendData", precice::syncMode);
 
@@ -286,8 +285,7 @@ void M2N::broadcastSend(int &itemToSend, mesh::Mesh &mesh)
 void M2N::receive(precice::span<double> itemsToReceive,
                   int                   meshID,
                   int                   valueDimension,
-                  bool                  withGradient,
-                  int                   gradientDimension)
+                  bool                  withGradient)
 {
   if (not _useOnlyMasterCom) {
     PRECICE_ASSERT(_areSlavesConnected);
@@ -305,7 +303,7 @@ void M2N::receive(precice::span<double> itemsToReceive,
     }
 
     if (withGradient)
-      Event e("m2n.receiveGradientData.dim:" + std::to_string(gradientDimension), precice::syncMode);
+      Event e("m2n.receiveGradientData" , precice::syncMode);
     else
       Event e("m2n.receiveData", precice::syncMode);
 

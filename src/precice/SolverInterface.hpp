@@ -721,7 +721,7 @@ public:
    *
    * @see SolverInterface::setMeshVertex()
    */
-  void writeGradientData(
+  void writeVectorGradientData(
       int           dataID,
       int           valueIndex,
       const double *valueX,

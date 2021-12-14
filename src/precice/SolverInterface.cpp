@@ -36,8 +36,6 @@ void SolverInterface::initializeData()
   _impl->initializeData();
 }
 
-//TODO: Do I need intializeGradientData() ? 
-
 double SolverInterface::advance(
     double computedTimestepLength)
 {
@@ -285,14 +283,14 @@ void SolverInterface::readBlockVectorData(
   _impl->readBlockVectorData(dataID, size, valueIndices, values);
 }
 
-void SolverInterface::writeGradientData(
+void SolverInterface::writeVectorGradientData(
     int           dataID,
     int           valueIndex,
     const double *valueX,
     const double *valueY,
     const double *valueZ)
 {
-  _impl->writeGradientData(dataID, valueIndex, valueX, valueY, valueZ);
+  _impl->writeVectorGradientData(dataID, valueIndex, valueX, valueY, valueZ);
 }
 
 void SolverInterface::writeScalarGradientData(

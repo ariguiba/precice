@@ -4,6 +4,7 @@
 #include <limits>
 #include <sstream>
 #include <utility>
+#include <functional>
 
 #include "BaseCouplingScheme.hpp"
 #include "acceleration/Acceleration.hpp"
@@ -92,15 +93,7 @@ void BaseCouplingScheme::sendData(const m2n::PtrM2N &m2n, const DataMap &sendDat
 
     if (pair.second->hasGradient())
     {
-      Eigen::MatrixXd gradVals = pair.second->gradientValues();
-
-      m2n->send(gradVals.row(0), pair.second->getMeshID(), pair.second->getDimensions(), true, 0);
-
-      if (gradVals.rows() >= 2)
-        m2n->send(gradVals.row(1), pair.second->getMeshID(), pair.second->getDimensions(), true, 1);
-
-      if (gradVals.rows() >= 3)
-      m2n->send(gradVals.row(2), pair.second->getMeshID(), pair.second->getDimensions(), true, 2);
+      m2n->send(pair.second->gradientValues(), pair.second->getMeshID(), pair.second->getDimensions() * pair.second->meshDimensions(), true);
     }
 
     sentDataIDs.push_back(pair.first);
@@ -121,21 +114,7 @@ void BaseCouplingScheme::receiveData(const m2n::PtrM2N &m2n, const DataMap &rece
 
     if (pair.second->hasGradient())
     {
-      Eigen::VectorXd gradVals0 = pair.second->gradientValues().row(0);
-      m2n->receive(gradVals0, pair.second->getMeshID(), pair.second->getDimensions(), true, 0);
-
-      if (pair.second->gradientValues().rows() > 1)
-      {
-        Eigen::VectorXd gradVals1 = pair.second->gradientValues().row(1);
-        m2n->receive(gradVals1, pair.second->getMeshID(), pair.second->getDimensions(), true, 1);
-      }
-
-      if (pair.second->gradientValues().rows() > 2)
-      {
-        Eigen::VectorXd gradVals2 = pair.second->gradientValues().row(2);
-        m2n->receive(gradVals2, pair.second->getMeshID(), pair.second->getDimensions(), true, 2);
-      }
-
+      m2n->receive(pair.second->gradientValues(), pair.second->getMeshID(), pair.second->getDimensions() * pair.second->meshDimensions(), true);
     }
 
     receivedDataIDs.push_back(pair.first);
@@ -279,7 +258,6 @@ void BaseCouplingScheme::advance()
   }
 }
 
-//TODO: Maybe add gradient here
 void BaseCouplingScheme::storeDataInWaveforms()
 {
   PRECICE_TRACE(_timeWindows);

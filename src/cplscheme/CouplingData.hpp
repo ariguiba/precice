@@ -33,6 +33,9 @@ public:
   /// Returns if the data contains gradient data
   bool hasGradient() const;
 
+  /// Returns the dimensions of the current mesh (2D or 3D)
+  int meshDimensions() const;
+
   /// store _data->values() in read-only variable _previousIteration for convergence checks etc.
   void storeIteration();
 
@@ -74,6 +77,7 @@ private:
 
   /// Mesh associated with this CouplingData
   mesh::PtrMesh _mesh;
+  const Eigen::VectorXd &gradientValuesRow(int i);
 };
 
 } // namespace cplscheme

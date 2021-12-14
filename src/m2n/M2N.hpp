@@ -152,8 +152,7 @@ public:
   void send(precice::span<double const> itemsToSend,
             int                         meshID,
             int                         valueDimension,
-            bool                        withGradient = false,
-            int                         gradientDimension = -1);
+            bool                        withGradient = false);
 
   /**
    * @brief The master sends a bool to the other master, for performance reasons, we
@@ -182,8 +181,7 @@ public:
   void receive(precice::span<double> itemsToReceive,
                int                   meshID,
                int                   valueDimension,
-               bool                  withGradient = false,
-               int                   gradientDimension = -1);
+               bool                  withGradient = false);
 
   /// All slaves receive a bool (the same for each slave).
   void receive(bool &itemToReceive);

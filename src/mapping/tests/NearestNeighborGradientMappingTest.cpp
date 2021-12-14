@@ -43,10 +43,10 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   inValuesVector << 1.0, 2.0, 3.0, 4.0;
 
   // Create corresponding gradient data (all gradient values = const = 1)
-  //Eigen::MatrixXd &inGradValuesScalar = inDataScalar->gradientValues();
-  //Eigen::MatrixXd &inGradValuesVector = inDataVector->gradientValues();
-  //inGradValuesScalar.setOnes();
-  //inGradValuesVector.setOnes();
+  Eigen::MatrixXd &inGradValuesScalar = inDataScalar->gradientValues();
+  Eigen::MatrixXd &inGradValuesVector = inDataVector->gradientValues();
+  inGradValuesScalar.setOnes();
+  inGradValuesVector.setOnes();
 
   // Create mesh to map to
   PtrMesh outMesh(new Mesh("OutMesh", dimensions, testing::nextMeshID()));
@@ -78,8 +78,8 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   BOOST_CHECK(equals(inValuesVector, outValuesVector));
 
   // Map data with almost coinciding vertices, with a null gradient, has to result in equal values
-  //inGradValuesScalar.setZero();
-  //inGradValuesVector.setZero();
+  inGradValuesScalar.setZero();
+  inGradValuesVector.setZero();
   inVertex0.setCoords(outVertex0.getCoords() + Eigen::Vector2d::Constant(0.1));
   inVertex1.setCoords(outVertex1.getCoords() + Eigen::Vector2d::Constant(0.1));
 
@@ -93,8 +93,8 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   BOOST_CHECK(equals(expected, outValuesVector));
 
   // Map data with almost coinciding vertices, should be a little different with the gradient optimization
-  //inGradValuesScalar.setOnes();
-  //inGradValuesVector.setOnes();
+  inGradValuesScalar.setOnes();
+  inGradValuesVector.setOnes();
   inVertex0.setCoords(outVertex0.getCoords() + Eigen::Vector2d::Constant(0.1));
   inVertex1.setCoords(outVertex1.getCoords() + Eigen::Vector2d::Constant(0.1));
 

@@ -57,6 +57,11 @@ bool CouplingData::hasGradient() const
   return _data->hasGradient();
 }
 
+int CouplingData::meshDimensions() const
+{
+  return _mesh->getDimensions();
+}
+
 void CouplingData::storeIteration()
 {
   _previousIteration = this->values();

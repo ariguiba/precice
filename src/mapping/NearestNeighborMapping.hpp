@@ -22,7 +22,8 @@ public:
   /// Destructor, empty.
   virtual ~NearestNeighborMapping() {}
 
-  virtual double mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues) override ;
+  /// Maps input data to output data from input mesh to output mesh.
+  virtual void map(int inputDataID, int outputDataID) override;
 }; 
 
 } // namespace mapping

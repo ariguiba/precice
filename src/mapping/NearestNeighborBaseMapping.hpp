@@ -39,15 +39,10 @@ public:
   /// Maps input data to output data from input mesh to output mesh.
   virtual void map(
       int inputDataID,
-      int outputDataID) override;
+      int outputDataID) = 0;
 
   virtual void tagMeshFirstRound() override;
   virtual void tagMeshSecondRound() override;
-
-  /// Maps single values
-  //static Eigen::MatrixXd _dummy_matrix;
-  virtual double mapAt(int mapInputIndex, int vertex, const Eigen::VectorXd &inputValues, const Eigen::MatrixXd &gradientValues) = 0;
-  
 
 protected:
 
@@ -62,6 +57,9 @@ protected:
   /// Compute the vector difference between the matched vector and the source vector (for gradient mapping)
   std::vector<Eigen::VectorXd> _distancesMatched;
 
+  /// Computed output vertex indices to map data from input vertices to.
+  std::vector<int> _vertexIndices;
+
 private:
   /// Flag to indicate whether computeMapping() has been called.
   bool _hasComputedMapping = false;
@@ -69,8 +67,7 @@ private:
   /// Flag if the mapping is a gradient mapping or not
   bool _hasGradient;
 
-  /// Computed output vertex indices to map data from input vertices to.
-  std::vector<int> _vertexIndices;
+
 
   
 };
