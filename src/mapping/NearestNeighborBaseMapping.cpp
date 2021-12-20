@@ -59,31 +59,29 @@ void NearestNeighborBaseMapping::computeMapping()
     searchSpace = input();
   }
 
+  // For log ouputs
   precice::utils::Event e2(baseEvent + ".getIndexOnVertices", precice::syncMode);
   query::Index          indexTree(searchSpace);
   e2.stop();
 
   const size_t verticesSize   = origins->vertices().size();
   const auto & sourceVertices = origins->vertices();
-
   _vertexIndices.resize(verticesSize); 
 
   if (hasGradient())
     _distancesMatched.resize(verticesSize); 
 
-
   utils::statistics::DistanceAccumulator distanceStatistics; 
 
   for (size_t i = 0; i < verticesSize; ++i) {
     auto matchedVertex = indexTree.getClosestVertex(sourceVertices[i].getCoords());
-    
 
     // Match the difference vector between the source vector and the matched one (relevant for gradient) 
     if(hasGradient()) {
       auto matchedVertexCoords = searchSpace.get()->vertices()[matchedVertex.index].getCoords();
       _distancesMatched[i] = matchedVertexCoords - sourceVertices[i].getCoords();
 
-      if (hasConstraint (CONSERVATIVE)) _distancesMatched[i] *= -1;
+      if (hasConstraint (CONSERVATIVE)) _distancesMatched[i] *= -1; // distances must always be from input to output
     }
 
     _vertexIndices[i]  = matchedVertex.index;

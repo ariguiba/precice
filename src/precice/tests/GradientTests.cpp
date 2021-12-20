@@ -606,8 +606,7 @@ BOOST_AUTO_TEST_CASE(NNG_Initialization)
 
 }
 
-// I dont get the flow
-// TODO: Add gradient data
+// ! No gradient data is being sent yet.
 
 void runTestDistributedCommunication(std::string const &config, TestContext const &context)
 {

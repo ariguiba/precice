@@ -52,20 +52,6 @@ public:
   static void resetDataCount();
 
   /**
-   * @brief Returns the number of created (and still existing) Gradient Data objects.
-   *
-   * Used to check if the number of data and corresponding gradient data is the same
-   */
-  static size_t getGradientDataCount();
-
-  /**
-   * @brief Sets the gradient data counter to zero.
-   *
-   * Used in test cases where multiple scenarios with gradient data are run.
-   */
-  static void resetGradientDataCount();
-
-  /**
    * @brief Do not use this constructor! Only there for compatibility with std::map.
    */
   Data();
@@ -120,7 +106,7 @@ public:
   /// Returns the mesh dimension (i.e., number of rows) of one gradient data value .
   int getMeshDimensions() const;
 
-  /// Returns the dimension (i.e., number of components) of one data value.
+  /// Returns the dimension (i.e., number of components) of one data value (i.e number of columns of one gradient data value).
   int getDimensions() const;
 
 private:
@@ -128,9 +114,6 @@ private:
 
   /// Counter for existing Data objects.
   static size_t _dataCount;
-  
-  /// Counter for existing Gradient Data objects.
-  static size_t _gradientDataCount;
 
   Eigen::VectorXd _values;
 
@@ -142,7 +125,7 @@ private:
   /// ID of the data set (supposed to be unique).
   DataID _id;
 
-  /// Dimensionality of one mesh elements -> number of rows (only 1, 2, 3 allowed for 1D, 2D, 3D).
+  /// Dimensionality of one mesh elements -> number of rows (only 2, 3 allowed for 2D, 3D).
   int _meshDimensions;
 
   /// Dimensionality of one data value.

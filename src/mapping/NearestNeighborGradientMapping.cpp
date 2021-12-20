@@ -42,14 +42,10 @@ void NearestNeighborGradientMapping::map(
   const Eigen::VectorXd &inputValues  = input()->data(inputDataID)->values();
   Eigen::VectorXd &      outputValues = output()->data(outputDataID)->values();
 
-  // If it's NearestNeighborMapping check if gradient data is available
-
-  if (hasGradient()){
-    /// Check if input has gradient data, else send Error
-    if (!input()->vertices().empty() && !input()->data(inputDataID)->hasGradient()){
-      PRECICE_ERROR("Mesh \"{}\" does not contain gradient data. ",
-                    input()->getName());
-    }
+  /// Check if input has gradient data, else send Error
+  if (!input()->vertices().empty() && !input()->data(inputDataID)->hasGradient()){
+    PRECICE_ERROR("Mesh \"{}\" does not contain gradient data. ",
+                  input()->getName());
   }
 
   const Eigen::MatrixXd &gradientValues = input()->data(inputDataID)->gradientValues();

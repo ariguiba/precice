@@ -11,8 +11,6 @@ namespace mesh {
 
 size_t Data::_dataCount = 0;
 
-size_t Data::_gradientDataCount = 0;
-
 Data::Data()
     : _name(""),
       _id(-1),
@@ -53,16 +51,11 @@ Data::Data(
 {
   PRECICE_ASSERT(dimensions > 0, dimensions);
   _dataCount++;
-
-  if (hasGradient)
-    _gradientDataCount++;
 }
 
 Data::~Data()
 {
   _dataCount--;
-  if (_hasGradient)
-    _gradientDataCount--;
 }
 
 Eigen::VectorXd &Data::values()
@@ -132,16 +125,6 @@ size_t Data::getDataCount()
 void Data::resetDataCount()
 {
   _dataCount = 0;
-}
-
-size_t Data::getGradientDataCount()
-{
-  return _gradientDataCount;
-}
-
-void Data::resetGradientDataCount()
-{
-  _gradientDataCount = 0;
 }
 
 } // namespace mesh

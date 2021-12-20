@@ -8,8 +8,8 @@
 namespace precice {
 namespace mapping {
 
-/// Mapping using nearest neighboring vertices and their local gradient values.
-/// Base class for NN and NNG
+/// Mapping using nearest neighboring vertices and (eventually) their local gradient values.
+/// Base class for Nearest Neighbor Mapping and Nearest Neighbor Gradient
 class NearestNeighborBaseMapping : public Mapping {
 public:
   /**
@@ -24,7 +24,7 @@ public:
   /// Destructor, empty.
   virtual ~NearestNeighborBaseMapping() {}
 
-  /// Checks if this is a gradient nearest neighbor mapping.
+  /// Checks if this is a Nearest Neighbor Gradient mapping.
   bool hasGradient();
 
   /// Computes the mapping coefficients from the in- and output mesh.
@@ -49,12 +49,12 @@ protected:
   /// NearestNeighborMapping or NearestNeighborGradientMapping 
   std::string MAPPING_NAME;
 
-  ///  = nn or = nng
+  /// nn or nng
   std::string MAPPING_NAME_SHORT;
 
   mutable logging::Logger _log{"mapping::" + MAPPING_NAME};
 
-  /// Compute the vector difference between the matched vector and the source vector (for gradient mapping)
+  /// Compute the vector difference between the matched vector and the source vector (needed for gradient mapping)
   std::vector<Eigen::VectorXd> _distancesMatched;
 
   /// Computed output vertex indices to map data from input vertices to.

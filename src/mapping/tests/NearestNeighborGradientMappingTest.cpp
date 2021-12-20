@@ -1,14 +1,11 @@
 #include <Eigen/Core>
 #include <algorithm>
-#include <memory>
 #include "logging/LogMacros.hpp"
 #include "mapping/Mapping.hpp"
 #include "mapping/NearestNeighborGradientMapping.hpp"
 #include "math/constants.hpp"
-#include "mesh/Data.hpp"
 #include "mesh/Mesh.hpp"
 #include "mesh/SharedPointer.hpp"
-#include "mesh/Utils.hpp"
 #include "mesh/Vertex.hpp"
 #include "testing/TestContext.hpp"
 #include "testing/Testing.hpp"
