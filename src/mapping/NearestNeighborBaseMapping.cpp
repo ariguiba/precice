@@ -1,18 +1,19 @@
 
 #include "NearestNeighborBaseMapping.hpp"
 
+#include <iostream>
 #include <boost/container/flat_set.hpp>
 #include <functional>
-#include <iostream>
 #include "logging/LogMacros.hpp"
 #include "mapping/Mapping.hpp"
 #include "mesh/SharedPointer.hpp"
 #include "mesh/Vertex.hpp"
 #include "query/Index.hpp"
 #include "utils/Event.hpp"
-#include "utils/Parallel.hpp"
 #include "utils/Statistics.hpp"
 #include "utils/assertion.hpp"
+#include "utils/Parallel.hpp"
+
 
 namespace precice {
 extern bool syncMode;
@@ -20,20 +21,19 @@ extern bool syncMode;
 namespace mapping {
 
 NearestNeighborBaseMapping::NearestNeighborBaseMapping(
-    Constraint  constraint,
-    int         dimensions,
-    bool        hasGradient,
-    std::string mappingName,
-    std::string mappingNameShort)
-    : Mapping(constraint, dimensions),
-      _hasGradient(hasGradient),
-      MAPPING_NAME(mappingName),
-      MAPPING_NAME_SHORT(mappingNameShort)
+  Constraint constraint, 
+  int dimensions, 
+  bool hasGradient,
+  std::string mappingName,
+  std::string mappingNameShort)
+  : Mapping(constraint, dimensions),
+    _hasGradient(hasGradient), 
+    MAPPING_NAME(mappingName),
+    MAPPING_NAME_SHORT(mappingNameShort) 
 {
 }
 
-bool NearestNeighborBaseMapping::hasGradient()
-{
+bool NearestNeighborBaseMapping::hasGradient() {
   return _hasGradient;
 }
 
@@ -66,26 +66,25 @@ void NearestNeighborBaseMapping::computeMapping()
 
   const size_t verticesSize   = origins->vertices().size();
   const auto & sourceVertices = origins->vertices();
-  _vertexIndices.resize(verticesSize);
+  _vertexIndices.resize(verticesSize); 
 
   if (hasGradient())
-    _distancesMatched.resize(verticesSize);
+    _distancesMatched.resize(verticesSize); 
 
-  utils::statistics::DistanceAccumulator distanceStatistics;
+  utils::statistics::DistanceAccumulator distanceStatistics; 
 
   for (size_t i = 0; i < verticesSize; ++i) {
     auto matchedVertex = indexTree.getClosestVertex(sourceVertices[i].getCoords());
 
-    // Match the difference vector between the source vector and the matched one (relevant for gradient)
-    if (hasGradient()) {
+    // Match the difference vector between the source vector and the matched one (relevant for gradient) 
+    if(hasGradient()) {
       auto matchedVertexCoords = searchSpace.get()->vertices()[matchedVertex.index].getCoords();
-      _distancesMatched[i]     = matchedVertexCoords - sourceVertices[i].getCoords();
+      _distancesMatched[i] = matchedVertexCoords - sourceVertices[i].getCoords();
 
-      if (hasConstraint(CONSERVATIVE))
-        _distancesMatched[i] *= -1; // distances must always be from input to output
+      if (hasConstraint (CONSERVATIVE)) _distancesMatched[i] *= -1; // distances must always be from input to output
     }
 
-    _vertexIndices[i] = matchedVertex.index;
+    _vertexIndices[i]  = matchedVertex.index;
     distanceStatistics(matchedVertex.distance);
   }
 
@@ -120,10 +119,11 @@ void NearestNeighborBaseMapping::clear()
   }
 }
 
+
 void NearestNeighborBaseMapping::tagMeshFirstRound()
 {
   PRECICE_TRACE();
-  precice::utils::Event e("map." + MAPPING_NAME_SHORT + ".tagMeshFirstRound.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
+  precice::utils::Event e("map."+ MAPPING_NAME_SHORT + ".tagMeshFirstRound.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
 
   computeMapping();
 

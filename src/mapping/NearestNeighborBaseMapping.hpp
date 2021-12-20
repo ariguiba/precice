@@ -19,7 +19,7 @@ public:
    * @param[in] dimensions Dimensionality of the meshes
    */
   NearestNeighborBaseMapping(Constraint constraint, int dimensions, bool hasGradient, std::string mappingName,
-                             std::string mappingNameShort);
+  std::string mappingNameShort);
 
   /// Destructor, empty.
   virtual ~NearestNeighborBaseMapping() {}
@@ -45,7 +45,8 @@ public:
   virtual void tagMeshSecondRound() override;
 
 protected:
-  /// NearestNeighborMapping or NearestNeighborGradientMapping
+
+  /// NearestNeighborMapping or NearestNeighborGradientMapping 
   std::string MAPPING_NAME;
 
   /// nn or nng
@@ -65,6 +66,10 @@ private:
 
   /// Flag if the mapping is a gradient mapping or not
   bool _hasGradient;
+
+
+
+  
 };
 
 } // namespace mapping
