@@ -128,15 +128,15 @@ public:
       Edge &edgeTwo,
       Edge &edgeThree);
 
-  /// Create only data for vertex 
+  /// Create only data for vertex
   PtrData &createData(const std::string &name,
                       int                dimension);
 
-  /// Creates data for vertex with additional gradient data 
+  /// Creates data for vertex with additional gradient data
   PtrData &createDataWithGradient(
-    const std::string &name,
-    int                dimension,
-    int                meshDimensions);
+      const std::string &name,
+      int                dimension,
+      int                meshDimensions);
 
   /// Allows access to all data
   const DataContainer &data() const;

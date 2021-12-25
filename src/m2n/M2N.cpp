@@ -225,7 +225,7 @@ void M2N::send(
     }
 
     if (withGradient)
-      Event e("m2n.sendGradientData" , precice::syncMode);
+      Event e("m2n.sendGradientData", precice::syncMode);
     else
       Event e("m2n.sendData", precice::syncMode);
 
@@ -303,7 +303,7 @@ void M2N::receive(precice::span<double> itemsToReceive,
     }
 
     if (withGradient)
-      Event e("m2n.receiveGradientData" , precice::syncMode);
+      Event e("m2n.receiveGradientData", precice::syncMode);
     else
       Event e("m2n.receiveData", precice::syncMode);
 

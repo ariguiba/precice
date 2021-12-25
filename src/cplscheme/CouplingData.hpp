@@ -76,7 +76,7 @@ private:
   mesh::PtrData _data;
 
   /// Mesh associated with this CouplingData
-  mesh::PtrMesh _mesh;
+  mesh::PtrMesh          _mesh;
   const Eigen::VectorXd &gradientValuesRow(int i);
 };
 

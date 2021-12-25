@@ -2,7 +2,6 @@
 <precice-configuration>
   <solver-interface dimensions="3">
     <!--data:scalar name="Data" gradient="on" /-->
-
     <data:scalar name="DataA" gradient="on" />
     <data:scalar name="DataB" />
 
@@ -25,12 +24,11 @@
       <use-mesh name="MeshB" provide="yes" />
       <use-mesh name="MeshA" provide="no" from="A" />
       <mapping:nearest-neighbor-gradient
-              constraint="consistent"
-              direction="read"
-              from="MeshA"
-              to="MeshB"/>
+        constraint="consistent"
+        direction="read"
+        from="MeshA"
+        to="MeshB" />
       <read-data name="DataA" mesh="MeshB" />
-
     </participant>
 
     <coupling-scheme:serial-explicit>

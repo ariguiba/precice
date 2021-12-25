@@ -249,12 +249,33 @@ void SolverInterface::writeBlockVectorData(
   _impl->writeBlockVectorData(dataID, size, valueIndices, values);
 }
 
+void SolverInterface::writeBlockVectorGradientData(
+    int           dataID,
+    int           size,
+    const int *   valueIndices,
+    const double *valuesdX,
+    const double *valuesdY,
+    const double *valuesdZ)
+{
+  _impl->writeBlockVectorGradientData(dataID, size, valueIndices, valuesdX, valuesdY, valuesdZ);
+}
+
 void SolverInterface::writeVectorData(
     int           dataID,
     int           valueIndex,
     const double *value)
 {
   _impl->writeVectorData(dataID, valueIndex, value);
+}
+
+void SolverInterface::writeVectorGradientData(
+    int           dataID,
+    int           valueIndex,
+    const double *valuedX,
+    const double *valuedY,
+    const double *valuedZ)
+{
+  _impl->writeVectorGradientData(dataID, valueIndex, valuedX, valuedY, valuedZ);
 }
 
 void SolverInterface::writeBlockScalarData(
@@ -266,12 +287,33 @@ void SolverInterface::writeBlockScalarData(
   _impl->writeBlockScalarData(dataID, size, valueIndices, values);
 }
 
+void SolverInterface::writeBlockScalarGradientData(
+    int           dataID,
+    int           size,
+    const int *   valueIndices,
+    const double *valuesdX,
+    const double *valuesdY,
+    const double *valuesdZ)
+{
+  _impl->writeBlockScalarGradientData(dataID, size, valueIndices, valuesdX, valuesdY, valuesdZ);
+}
+
 void SolverInterface::writeScalarData(
     int    dataID,
     int    valueIndex,
     double value)
 {
   _impl->writeScalarData(dataID, valueIndex, value);
+}
+
+void SolverInterface::writeScalarGradientData(
+    int          dataID,
+    int          valueIndex,
+    const double valuedX,
+    const double valuedY,
+    const double valuedZ)
+{
+  _impl->writeScalarGradientData(dataID, valueIndex, valuedX, valuedY, valuedZ);
 }
 
 void SolverInterface::readBlockVectorData(
@@ -281,26 +323,6 @@ void SolverInterface::readBlockVectorData(
     double *   values) const
 {
   _impl->readBlockVectorData(dataID, size, valueIndices, values);
-}
-
-void SolverInterface::writeVectorGradientData(
-    int           dataID,
-    int           valueIndex,
-    const double *valueX,
-    const double *valueY,
-    const double *valueZ)
-{
-  _impl->writeVectorGradientData(dataID, valueIndex, valueX, valueY, valueZ);
-}
-
-void SolverInterface::writeScalarGradientData(
-    int dataID,
-    int valueIndex,
-    const double valueX,
-    const double valueY,
-    const double valueZ)
-{
-  _impl->writeScalarGradientData(dataID, valueIndex, valueX, valueY, valueZ);
 }
 
 void SolverInterface::readVectorData(

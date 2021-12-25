@@ -24,7 +24,7 @@ public:
 
   /// Maps input data to output data from input mesh to output mesh.
   virtual void map(int inputDataID, int outputDataID) override;
-};  
+};
 
 } // namespace mapping
 } // namespace precice

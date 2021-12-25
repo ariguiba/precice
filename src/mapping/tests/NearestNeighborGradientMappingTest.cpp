@@ -13,7 +13,6 @@
 using namespace precice;
 using namespace precice::mesh;
 
-
 BOOST_AUTO_TEST_SUITE(MappingTests)
 BOOST_AUTO_TEST_SUITE(NearestNeighborGradientMapping)
 
@@ -66,10 +65,10 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   mapping.map(inDataScalarID, outDataScalarID);
   const Eigen::VectorXd &outValuesScalar = outDataScalar->values();
   BOOST_TEST(mapping.hasComputedMapping() == true);
-  
+
   BOOST_TEST(outValuesScalar(0) == inValuesScalar(0));
   BOOST_TEST(outValuesScalar(1) == inValuesScalar(1));
-  
+
   mapping.map(inDataVectorID, outDataVectorID);
   const Eigen::VectorXd &outValuesVector = outDataVector->values();
   BOOST_CHECK(equals(inValuesVector, outValuesVector));
@@ -103,10 +102,10 @@ BOOST_AUTO_TEST_CASE(ConsistentNonIncremental)
   mapping.map(inDataVectorID, outDataVectorID);
   expected << 1.2, 2.2, 3.2, 4.2;
   BOOST_CHECK(equals(expected, outValuesVector));
-
 }
 
-BOOST_AUTO_TEST_CASE(ConsistentGradientNotConstant){
+BOOST_AUTO_TEST_CASE(ConsistentGradientNotConstant)
+{
 
   PRECICE_TEST(1_rank)
   int dimensions = 2;
@@ -164,13 +163,10 @@ BOOST_AUTO_TEST_CASE(ConsistentGradientNotConstant){
   BOOST_TEST(outValuesScalar(1) == inValuesScalar(1) - 0.5);
 
   mapping.map(inDataVectorID, outDataVectorID);
-  Eigen::Vector4d expected(0.5, 0.9, 2.5, 2.9);
+  Eigen::Vector4d        expected(0.5, 0.9, 2.5, 2.9);
   const Eigen::VectorXd &outValuesVector = outDataVector->values();
   BOOST_CHECK(equals(expected, outValuesVector));
-
-
 }
-
 
 BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
 {
@@ -188,11 +184,10 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
   inMesh->allocateDataValues();
   Eigen::VectorXd &inValues = inData->values();
   inValues << 1.0, 2.0;
-  
+
   // Create corresponding gradient
   Eigen::MatrixXd &inGradValues = inData->gradientValues();
   inGradValues.setOnes();
-
 
   // Create mesh to map to
   PtrMesh outMesh(new Mesh("OutMesh", dimensions, testing::nextMeshID()));
@@ -216,29 +211,26 @@ BOOST_AUTO_TEST_CASE(ConservativeNonIncremental)
   BOOST_TEST(outValues(1) == inValues(1));
   outValues = Eigen::VectorXd::Constant(outValues.size(), 0.0);
 
-  
   // Map data with almost coinciding vertices, has to result in a slight difference that's the value of the gradient optimization
   inVertex0.setCoords(outVertex0.getCoords() + Eigen::Vector2d::Constant(0.1));
   inVertex1.setCoords(outVertex1.getCoords() + Eigen::Vector2d::Constant(0.1));
   mapping.computeMapping();
   mapping.map(inDataID, outDataID);
   BOOST_TEST(mapping.hasComputedMapping() == true);
-  BOOST_TEST(outValues(0) == inValues(0) + 0.2); 
+  BOOST_TEST(outValues(0) == inValues(0) + 0.2);
   BOOST_TEST(outValues(1) == inValues(1) + 0.2);
   outValues = Eigen::VectorXd::Constant(outValues.size(), 0.0);
 
-  
   // Map data with coinciding output vertices, has to result in double values with gradient optimization.
   inVertex0.setCoords(Eigen::Vector2d::Constant(0.0));
   inVertex1.setCoords(Eigen::Vector2d::Constant(1.0));
-  
+
   outVertex1.setCoords(Eigen::Vector2d::Constant(-1.0));
   mapping.computeMapping();
   mapping.map(inDataID, outDataID);
   BOOST_TEST(mapping.hasComputedMapping() == true);
-  BOOST_TEST(outValues(0) == inValues(0) + inValues(1) + 2); //dist*Grad(0,0 - 0,0) = 0 + dist*Grad(0,0 - 0,1) = (1 1) * (1 1)^T 
+  BOOST_TEST(outValues(0) == inValues(0) + inValues(1) + 2); //dist*Grad(0,0 - 0,0) = 0 + dist*Grad(0,0 - 0,1) = (1 1) * (1 1)^T
   BOOST_TEST(outValues(1) == 0.0);
-  
 }
 
 BOOST_AUTO_TEST_SUITE_END()

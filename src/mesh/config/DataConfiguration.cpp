@@ -32,8 +32,6 @@ DataConfiguration::DataConfiguration(xml::XMLTag &parent)
   tagVector.addAttribute(attrName);
   tagVector.addAttribute(attrHasGradient);
   parent.addSubtag(tagVector);
-
-
 }
 
 void DataConfiguration::setDimensions(
@@ -65,7 +63,7 @@ void DataConfiguration::xmlTagCallback(
   if (tag.getNamespace() == TAG) {
     PRECICE_ASSERT(_dimensions != 0);
     const std::string &name           = tag.getStringAttributeValue(ATTR_NAME);
-    bool              hasGradient     = tag.getBooleanAttributeValue(ATTR_HAS_GRADIENT);
+    bool               hasGradient    = tag.getBooleanAttributeValue(ATTR_HAS_GRADIENT);
     const std::string &typeName       = tag.getName();
     int                dataDimensions = getDataDimensions(typeName);
     addData(name, dataDimensions, hasGradient);

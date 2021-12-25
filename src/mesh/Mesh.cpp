@@ -185,8 +185,8 @@ const PtrData &Mesh::data(const std::string &dataName) const
 
 PtrData &Mesh::createDataWithGradient(
     const std::string &name,
-    int               dimension,
-    int               meshDimensions) 
+    int                dimension,
+    int                meshDimensions)
 {
   PRECICE_TRACE(name, dimension);
   for (const PtrData &data : _data) {
@@ -195,16 +195,13 @@ PtrData &Mesh::createDataWithGradient(
                   "Please rename or remove one of the use-data tags with name \"{}\".",
                   name, _name, name);
   }
-  int     id = Data::getDataCount();
+  int id = Data::getDataCount();
 
   //#rows = dimensions of current mesh #columns = dimensions of corresponding data set
   PtrData data(new Data(name, id, dimension, meshDimensions, true));
   _data.push_back(data);
   return _data.back();
-  
 }
-
-
 
 const std::string &Mesh::getName() const
 {
@@ -248,27 +245,24 @@ void Mesh::allocateDataValues()
     PRECICE_DEBUG("Data {} now has {} values", data->getName(), data->values().size());
 
     // Allocate gradient data values
-    if (data->hasGradient())
-    {
-      const SizeType expectedRowSize = data->getMeshDimensions();
-      const SizeType expectedColumnSize = expectedCount * data->getDimensions() ;
-      const auto     actualRowSize   = static_cast<SizeType>(data->gradientValues().rows());
+    if (data->hasGradient()) {
+      const SizeType spaceDimensions = data->getMeshDimensions();
+
+      const SizeType expectedColumnSize = expectedCount * data->getDimensions();
       const auto     actualColumnSize   = static_cast<SizeType>(data->gradientValues().cols());
       // Shrink Buffer
-      if (expectedRowSize < actualRowSize || expectedColumnSize < actualColumnSize ) {
-        data->gradientValues().resize(expectedRowSize, expectedColumnSize);
+      if (expectedColumnSize < actualColumnSize) {
+        data->gradientValues().resize(spaceDimensions, expectedColumnSize);
       }
       // Enlarge Buffer
-      if (expectedRowSize > actualRowSize || expectedColumnSize > actualColumnSize) {
-        const auto rowsLeftToAllocate = expectedRowSize - actualRowSize;
+      if (expectedColumnSize > actualColumnSize) {
         const auto columnLeftToAllocate = expectedColumnSize - actualColumnSize;
-        utils::append(data->gradientValues(), Eigen::MatrixXd(Eigen::MatrixXd::Zero(rowsLeftToAllocate, columnLeftToAllocate)));
+        utils::append(data->gradientValues(), Eigen::MatrixXd(Eigen::MatrixXd::Zero(spaceDimensions, columnLeftToAllocate)));
       }
       PRECICE_DEBUG("Gradient Data {} now has {} x {} values", data->getName(), data->gradientValues().rows(), data->gradientValues().cols());
     }
   }
 }
-
 
 void Mesh::computeBoundingBox()
 {
