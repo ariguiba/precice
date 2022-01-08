@@ -98,6 +98,8 @@ private:
   const std::string VALUE_NO_FILTER        = "no-filter";
 
   const std::string VALUE_VTK = "vtk";
+  const std::string VALUE_VTU = "vtu";
+  const std::string VALUE_VTP = "vtp";
 
   int _dimensions = 0;
 
