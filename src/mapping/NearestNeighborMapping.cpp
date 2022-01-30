@@ -28,22 +28,23 @@ NearestNeighborMapping::NearestNeighborMapping(
   }
 }
 
+void NearestNeighborMapping::onMappingComputed(mesh::PtrMesh origins, mesh::PtrMesh searchSpace)
+{
+  // No implementation needed for NN because offsets not needed
+}
+
 void NearestNeighborMapping::map(
     int inputDataID,
     int outputDataID)
 {
   PRECICE_TRACE(inputDataID, outputDataID);
 
-  precice::utils::Event e("map." + MAPPING_NAME_SHORT + ".mapData.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
-  int                   valueDimensions = input()->data(inputDataID)->getDimensions(); // Data dimensions (bei scalar = 1, bei vectors > 1)
+  precice::utils::Event e("map." + mappingNameShort + ".mapData.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
+  const int             valueDimensions = input()->data(inputDataID)->getDimensions(); // Data dimensions (for scalar = 1, for vectors > 1)
 
   const Eigen::VectorXd &inputValues  = input()->data(inputDataID)->values();
   Eigen::VectorXd &      outputValues = output()->data(outputDataID)->values();
 
-  //assign(outputValues) = 0.0;
-
-  PRECICE_ASSERT(valueDimensions == output()->data(outputDataID)->getDimensions(),
-                 valueDimensions, output()->data(outputDataID)->getDimensions());
   PRECICE_ASSERT(inputValues.size() / valueDimensions == (int) input()->vertices().size(),
                  inputValues.size(), valueDimensions, input()->vertices().size());
   PRECICE_ASSERT(outputValues.size() / valueDimensions == (int) output()->vertices().size(),
@@ -58,8 +59,8 @@ void NearestNeighborMapping::map(
 
       for (int dim = 0; dim < valueDimensions; dim++) {
 
-        int mapOutputIndex = outputIndex + dim;
-        int mapInputIndex  = (i * valueDimensions) + dim;
+        const int mapOutputIndex = outputIndex + dim;
+        const int mapInputIndex  = (i * valueDimensions) + dim;
 
         outputValues(mapOutputIndex) += inputValues(mapInputIndex);
       }
@@ -73,8 +74,8 @@ void NearestNeighborMapping::map(
 
       for (int dim = 0; dim < valueDimensions; dim++) {
 
-        int mapOutputIndex = (i * valueDimensions) + dim;
-        int mapInputIndex  = inputIndex + dim;
+        const int mapOutputIndex = (i * valueDimensions) + dim;
+        const int mapInputIndex  = inputIndex + dim;
 
         outputValues(mapOutputIndex) = inputValues(mapInputIndex);
       }

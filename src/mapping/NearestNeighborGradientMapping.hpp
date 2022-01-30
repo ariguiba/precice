@@ -19,11 +19,11 @@ public:
    */
   NearestNeighborGradientMapping(Constraint constraint, int dimensions);
 
-  /// Destructor, empty.
-  virtual ~NearestNeighborGradientMapping() {}
-
   /// Maps input data to output data from input mesh to output mesh.
   virtual void map(int inputDataID, int outputDataID) override;
+
+  /// Calculates the offsets needed for the gradient mappings after calculating the matched vertices
+  virtual void onMappingComputed(mesh::PtrMesh origins, mesh::PtrMesh searchSpace) override;
 };
 
 } // namespace mapping

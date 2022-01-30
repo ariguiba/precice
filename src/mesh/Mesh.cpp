@@ -246,14 +246,16 @@ void Mesh::allocateDataValues()
 
     // Allocate gradient data values
     if (data->hasGradient()) {
-      const SizeType spaceDimensions = data->getMeshDimensions();
+      const SizeType spaceDimensions = data->getSpacialDimensions();
 
       const SizeType expectedColumnSize = expectedCount * data->getDimensions();
       const auto     actualColumnSize   = static_cast<SizeType>(data->gradientValues().cols());
+
       // Shrink Buffer
       if (expectedColumnSize < actualColumnSize) {
         data->gradientValues().resize(spaceDimensions, expectedColumnSize);
       }
+
       // Enlarge Buffer
       if (expectedColumnSize > actualColumnSize) {
         const auto columnLeftToAllocate = expectedColumnSize - actualColumnSize;

@@ -22,19 +22,19 @@ namespace mapping {
 NearestNeighborBaseMapping::NearestNeighborBaseMapping(
     Constraint  constraint,
     int         dimensions,
-    bool        hasGradient,
+    bool        requireGradient,
     std::string mappingName,
     std::string mappingNameShort)
-    : Mapping(constraint, dimensions),
-      _hasGradient(hasGradient),
-      MAPPING_NAME(mappingName),
-      MAPPING_NAME_SHORT(mappingNameShort)
+    : Mapping(constraint, dimensions, requireGradient),
+      _requireGradient(requireGradient),
+      mappingName(mappingName),
+      mappingNameShort(mappingNameShort)
 {
 }
 
-bool NearestNeighborBaseMapping::hasGradient()
+bool NearestNeighborBaseMapping::requireGradient()
 {
-  return _hasGradient;
+  return _requireGradient;
 }
 
 void NearestNeighborBaseMapping::computeMapping()
@@ -44,7 +44,7 @@ void NearestNeighborBaseMapping::computeMapping()
   PRECICE_ASSERT(input().get() != nullptr);
   PRECICE_ASSERT(output().get() != nullptr);
 
-  const std::string     baseEvent = "map." + MAPPING_NAME_SHORT + ".computeMapping.From" + input()->getName() + "To" + output()->getName();
+  const std::string     baseEvent = "map." + mappingNameShort + ".computeMapping.From" + input()->getName() + "To" + output()->getName();
   precice::utils::Event e(baseEvent, precice::syncMode);
 
   // Setup Direction of Mapping
@@ -64,31 +64,25 @@ void NearestNeighborBaseMapping::computeMapping()
   query::Index          indexTree(searchSpace);
   e2.stop();
 
+  // Set up of output arrays
   const size_t verticesSize   = origins->vertices().size();
   const auto & sourceVertices = origins->vertices();
   _vertexIndices.resize(verticesSize);
 
-  if (hasGradient())
-    _distancesMatched.resize(verticesSize);
-
+  // Needed for error calculations
   utils::statistics::DistanceAccumulator distanceStatistics;
 
   for (size_t i = 0; i < verticesSize; ++i) {
-    auto matchedVertex = indexTree.getClosestVertex(sourceVertices[i].getCoords());
-
-    // Match the difference vector between the source vector and the matched one (relevant for gradient)
-    if (hasGradient()) {
-      auto matchedVertexCoords = searchSpace.get()->vertices()[matchedVertex.index].getCoords();
-      _distancesMatched[i]     = matchedVertexCoords - sourceVertices[i].getCoords();
-
-      if (hasConstraint(CONSERVATIVE))
-        _distancesMatched[i] *= -1; // distances must always be from input to output
-    }
-
-    _vertexIndices[i] = matchedVertex.index;
+    const auto &matchedVertex = indexTree.getClosestVertex(sourceVertices[i].getCoords());
+    _vertexIndices[i]         = matchedVertex.index;
     distanceStatistics(matchedVertex.distance);
   }
 
+  // For gradient mapping, the calculation of offsets between source and matched vertex necessary
+  onMappingComputed(origins, searchSpace);
+
+  // This is the distance object between the coordinates of the vertices and its match in the mesh.
+  // This prints min, max, average and count of the distances.
   if (distanceStatistics.empty()) {
     PRECICE_INFO("Mapping distance not available due to empty partition.");
   } else {
@@ -110,8 +104,8 @@ void NearestNeighborBaseMapping::clear()
   _vertexIndices.clear();
   _hasComputedMapping = false;
 
-  if (hasGradient())
-    _distancesMatched.clear();
+  if (requireGradient())
+    _offsetsMatched.clear();
 
   if (getConstraint() == CONSISTENT) {
     query::clearCache(input()->getID());
@@ -123,7 +117,7 @@ void NearestNeighborBaseMapping::clear()
 void NearestNeighborBaseMapping::tagMeshFirstRound()
 {
   PRECICE_TRACE();
-  precice::utils::Event e("map." + MAPPING_NAME_SHORT + ".tagMeshFirstRound.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
+  precice::utils::Event e("map." + mappingNameShort + ".tagMeshFirstRound.From" + input()->getName() + "To" + output()->getName(), precice::syncMode);
 
   computeMapping();
 
@@ -146,7 +140,7 @@ void NearestNeighborBaseMapping::tagMeshFirstRound()
 void NearestNeighborBaseMapping::tagMeshSecondRound()
 {
   PRECICE_TRACE();
-  // for NNG mapping no operation needed here
+  // for NN mapping no operation needed here
 }
 
 } // namespace mapping

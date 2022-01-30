@@ -300,9 +300,7 @@ double SolverInterfaceImpl::initialize()
   _couplingScheme->initialize(time, timeWindow);
   PRECICE_ASSERT(_couplingScheme->isInitialized());
 
-  double dt = 0.0;
-
-  dt = _couplingScheme->getNextTimestepMaxLength();
+  double dt = _couplingScheme->getNextTimestepMaxLength();
 
   if (_couplingScheme->hasDataBeenReceived()) {
     performDataActions({action::Action::READ_MAPPING_PRIOR}, 0.0, 0.0, 0.0, dt);
@@ -1578,23 +1576,15 @@ void SolverInterfaceImpl::getMeshVerticesAndIDs(
   }
 }
 
-void SolverInterfaceImpl::exportMesh(
-    const std::string &filenameSuffix,
-    int                exportType) const
+void SolverInterfaceImpl::exportMesh(const std::string &filenameSuffix) const
 {
-  PRECICE_TRACE(filenameSuffix, exportType);
+  PRECICE_TRACE(filenameSuffix);
   // Export meshes
-  //const ExportContext& context = _accessor->exportContext();
   for (const io::ExportContext &context : _accessor->exportContexts()) {
-    PRECICE_DEBUG("Export type = {}", exportType);
-    bool exportAll  = exportType == io::constants::exportAll();
-    bool exportThis = context.exporter->getType() == exportType;
-    if (exportAll || exportThis) {
-      for (const MeshContext *meshContext : _accessor->usedMeshContexts()) {
-        std::string name = meshContext->mesh->getName() + "-" + filenameSuffix;
-        PRECICE_DEBUG("Exporting mesh to file \"{}\" at location \"{}\"", name, context.location);
-        context.exporter->doExport(name, context.location, *(meshContext->mesh));
-      }
+    for (const MeshContext *meshContext : _accessor->usedMeshContexts()) {
+      std::string name = meshContext->mesh->getName() + "-" + filenameSuffix;
+      PRECICE_DEBUG("Exporting mesh to file \"{}\" at location \"{}\"", name, context.location);
+      context.exporter->doExport(name, context.location, *(meshContext->mesh));
     }
   }
 }

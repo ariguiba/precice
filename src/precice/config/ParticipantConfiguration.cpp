@@ -10,9 +10,11 @@
 #include "com/MPIDirectCommunication.hpp"
 #include "com/SharedPointer.hpp"
 #include "com/config/CommunicationConfiguration.hpp"
+#include "io/ExportCSV.hpp"
 #include "io/ExportContext.hpp"
 #include "io/ExportVTK.hpp"
-#include "io/ExportVTKXML.hpp"
+#include "io/ExportVTP.hpp"
+#include "io/ExportVTU.hpp"
 #include "io/SharedPointer.hpp"
 #include "io/config/ExportConfiguration.hpp"
 #include "logging/LogMacros.hpp"
@@ -548,11 +550,25 @@ void ParticipantConfiguration::finishParticipantConfiguration(
   for (io::ExportContext &exportContext : _exportConfig->exportContexts()) {
     io::PtrExport exporter;
     if (exportContext.type == VALUE_VTK) {
+      // This is handled with respect to the current configuration context.
+      // Hence, this is potentially wrong for every participant other than context.name.
       if (context.size > 1) {
-        exporter = io::PtrExport(new io::ExportVTKXML());
+        // Only display the warning message if this participant configuration is the current one.
+        if (context.name == participant->getName()) {
+          PRECICE_WARN("You are using the VTK exporter in the parallel participant {}. "
+                       "Note that this will export as PVTU instead. For consistency, prefer \"<export:vtu ... />\" instead.",
+                       participant->getName());
+        }
+        exporter = io::PtrExport(new io::ExportVTU());
       } else {
         exporter = io::PtrExport(new io::ExportVTK());
       }
+    } else if (exportContext.type == VALUE_VTU) {
+      exporter = io::PtrExport(new io::ExportVTU());
+    } else if (exportContext.type == VALUE_VTP) {
+      exporter = io::PtrExport(new io::ExportVTP());
+    } else if (exportContext.type == VALUE_CSV) {
+      exporter = io::PtrExport(new io::ExportCSV());
     } else {
       PRECICE_ERROR("Participant {} defines an <export/> tag of unknown type \"{}\".",
                     _participants.back()->getName(), exportContext.type);

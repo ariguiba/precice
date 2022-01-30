@@ -4,7 +4,7 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
-#include "Export.hpp"
+#include "io/Export.hpp"
 #include "logging/Logger.hpp"
 
 namespace precice {
@@ -18,37 +18,28 @@ class Triangle;
 namespace precice {
 namespace io {
 
-/// Writes meshes to xml-vtk files. Only for parallel usage. Serial usage (coupling mode) should still use ExportVTK
-class ExportVTKXML : public Export {
+/// Common class to generate the VTK XML-based formats.
+class ExportXML : public Export {
 public:
-  /// Returns the VTK type ID.
-  virtual int getType() const;
-
-  /// Perform writing to vtk file
-  /**
-   * @param[in] name filename to export to
-   * @param[in] locastion Export path
-   * @param[mesh] mesh Mesh to export
-   */
-  virtual void doExport(
+  void doExport(
       const std::string &name,
       const std::string &location,
-      mesh::Mesh &       mesh);
+      const mesh::Mesh & mesh) override;
 
   static void writeVertex(
       const Eigen::VectorXd &position,
-      std::ofstream &        outFile);
+      std::ostream &         outFile);
 
   static void writeLine(
       const mesh::Edge &edge,
-      std::ofstream &   outFile);
+      std::ostream &    outFile);
 
   static void writeTriangle(
       const mesh::Triangle &triangle,
-      std::ofstream &       outFile);
+      std::ostream &        outFile);
 
 private:
-  logging::Logger _log{"io::ExportVTKXML"};
+  mutable logging::Logger _log{"io::ExportXML"};
 
   /// List of names of all scalar data on mesh
   std::vector<std::string> _scalarDataNames;
@@ -56,11 +47,16 @@ private:
   /// List of names of all vector data on mesh
   std::vector<std::string> _vectorDataNames;
 
+  virtual std::string getVTKFormat() const                             = 0;
+  virtual std::string getMasterExtension() const                       = 0;
+  virtual std::string getPieceExtension() const                        = 0;
+  virtual std::string getPieceAttributes(const mesh::Mesh &mesh) const = 0;
+
   /**
     * @brief Stores scalar and vector data names in string vectors
     * Needed for writing master file and sub files
     */
-  void processDataNamesAndDimensions(mesh::Mesh const &mesh);
+  void processDataNamesAndDimensions(const mesh::Mesh &mesh);
 
   /**
     * @brief Writes the master file (called only by the master rank)
@@ -68,7 +64,11 @@ private:
   void writeMasterFile(
       const std::string &name,
       const std::string &location,
-      mesh::Mesh &       mesh);
+      const mesh::Mesh & mesh) const;
+
+  virtual void writeMasterCells(std::ostream &out) const = 0;
+
+  void writeMasterData(std::ostream &out) const;
 
   /**
     * @brief Writes the sub file for each rank
@@ -76,15 +76,19 @@ private:
   void writeSubFile(
       const std::string &name,
       const std::string &location,
-      mesh::Mesh &       mesh);
+      const mesh::Mesh & mesh) const;
 
-  void exportMesh(
-      std::ofstream &   outFile,
-      mesh::Mesh const &mesh);
+  void exportPoints(
+      std::ostream &    outFile,
+      const mesh::Mesh &mesh) const;
+
+  virtual void exportConnectivity(
+      std::ostream &    outFile,
+      const mesh::Mesh &mesh) const = 0;
 
   void exportData(
-      std::ofstream &outFile,
-      mesh::Mesh &   mesh);
+      std::ostream &    outFile,
+      const mesh::Mesh &mesh) const;
 };
 
 } // namespace io
